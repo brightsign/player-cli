@@ -21,6 +21,8 @@ npm -g install
 
 ## Usage
 
+Note: By default, `bsc` will return the response `{data: {result: {...}}}`. To retrieve the raw HTTP Response add the `-a=true` argument.
+
 Example 1:
 ```bash
 bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info"
@@ -29,4 +31,25 @@ bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info"
 Example 1:
 ```bash
 bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/files/sd"
+```
+
+## Formatting Responses
+
+Install the tool [jq](https://stedolan.github.io/jq/download/) to prettify the JSON response structures.
+
+### jq examples
+
+Parse the keys:
+```bash
+bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq 'keys'
+```
+
+Prettify the entire response: 
+```bash
+bsc -i=192.168.128.101 -p=XAE28N000058 -m=GET -r="/info" | jq '.data.result'
+```
+
+Parse the model from /info
+```bash
+bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq '.data.result.model'
 ```
