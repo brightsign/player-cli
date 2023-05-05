@@ -8,7 +8,7 @@ It is assumed you have the requirements for doing basic node.js development alre
 npm i
 ```
 
-Latest Local DWS REST APO Documentation as of May 5th, 2023.
+Latest Local DWS REST API Documentation as of May 5th, 2023.
 [Local DWS APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs)
 
 ## Installing NPM Module from source
