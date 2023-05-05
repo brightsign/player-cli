@@ -1,4 +1,4 @@
-# BrightSign Node CLI Local DWS APIs
+# BrightSign CLI API Tool
 
 The purpose of this package is to allow users to communicate with the BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs through a simple CLI tool, `bsc`. 
 
