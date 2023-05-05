@@ -29,7 +29,7 @@ Example 1:
 bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info"
 ```
 
-Example 1:
+Example 2:
 ```bash
 bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/files/sd"
 ```
