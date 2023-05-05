@@ -1,6 +1,6 @@
 # BrightSign Node CLI Local DWS APIs
 
-The purpose of this module is to allow users to communicate with the BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs.
+The purpose of this package is to allow users to communicate with the BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs through a simple CLI tool, `bsc`. 
 
 It is assumed you have the requirements for doing basic node.js development already installed.  To support this example, you also need to run the following in this folder:
 
@@ -13,10 +13,11 @@ Latest Local DWS REST APO Documentation as of May 5th, 2023.
 
 ## Installing NPM Module from source
 
-The following will need to be run to build the npm module: 
+The following will need to be run to build the npm module. `bsc` will be built and ready to use. 
 
 ```bash
 npm -g install
+bsc
 ```
 
 ## Usage
