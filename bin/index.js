@@ -50,7 +50,7 @@ async function requestAxios (requestOptions) {
     requestOptions.url = `http://${ipAddress}/api/v1` + requestOptions.url;
     response = await axiosDigestAuthInst.request(requestOptions);
     if (rawResponse) {
-      console.log(JSON.stringify(response));
+      console.log(response);
     } else {
       console.log(JSON.stringify(response.data));
     }
