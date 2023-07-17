@@ -3,4 +3,3 @@ package-lock.json
 .envrc
 testFiles
 players.json
-*.log
