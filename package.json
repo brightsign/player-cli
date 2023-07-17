@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@mhoc/axios-digest-auth": "^0.8.0",
+    "axios": "^1.4.0",
     "yargs": "^17.7.2"
   }
 }
