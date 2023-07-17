@@ -99,13 +99,14 @@ async function pushFunc(argv) {
 
     let form = new formData();
     form.append('field-name', fileStream, {knownLength: fileSizeInBytes});
+    //requestOptions.body = form;
     requestOptions.data = form;
 
     try {
       let response = await requestAxios(requestOptions, playerPW);
       console.log(response);
     } catch (err) {
-      console.log(JSON.stringify(err));
+      console.log(err);
     }
   } else if (!isFile){
     console.log('pushing directory');
@@ -133,7 +134,7 @@ async function pushFunc(argv) {
           let response = await requestAxios(requestOptions, playerPW);
           console.log(response);
         } catch (err) {
-          console.log(JSON.stringify(err));
+          console.log(err);
         }
       });
     });
@@ -227,7 +228,7 @@ async function getDeviceInfo(argv) {
     let response = await requestAxios(requestOptions, playerPW);
     console.log(response);
   } catch (err) {
-    console.log(JSON.stringify(err));
+    console.log(err);
   }
   
 
@@ -236,7 +237,9 @@ async function getDeviceInfo(argv) {
 async function prepareAxios(pass) {
   if (axiosDigestAuthInst == null || axiosDigestAuthInst === undefined) {
     const options = {
-        username: 'admin'
+        username: 'admin',
+        password: pass
+
     };
     axiosDigestAuthInst = new AxiosDigestAuth(options);
   }
