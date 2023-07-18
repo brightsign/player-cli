@@ -17,40 +17,27 @@ The following will need to be run to build the npm module. `bsc` will be built a
 
 ```bash
 npm -g install
-bsc
+bsc --help
 ```
 
 ## Usage
 
-Note: By default, `bsc` will return the response `{data: {result: {...}}}`. To retrieve the raw HTTP Response add the `-a=true` argument.
+For a list of commands and their usage, use `bsc --help`.
 
-Example 1:
+This CLI uses a player configuration object to interact with your player(s). This configuration can be found in the players.json file currently. You can add and remove players from this object at the command line: 
 ```bash
-bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info"
+bsc addPlayer [playerName] [ipAddress] [lDWS username] [lDWS password]
+bsc rmPlayer [playerName]
 ```
+### Features
 
-Example 2:
-```bash
-bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/files/sd"
-```
+| Feature | Implemented? | Function | Usage |
+| addPlayer | [x] | Add player configuration to players.json | bsc addPlayer [playerName] [ipAddress] [lDWS username] [lDWS password] |
+| rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer [playerName] |
+| getDI | [x] | Get device info in the form of a JSON object | bsc getDI [playerName] | 
+| push | [] | Push file/files to a player. Specify a single file or a directory of files and the upload location (optional) | bsc push [playerName] [File/Directory] [location] |
+| reboot | [x] | Reboot the specified player | bsc reboot [playerName] |
+| checkPW | [x] | Check if lDWS password is enabled | bsc checkPW [playerName] |
+| screenshot | [x] | Take a screenshot | bsc screenshot [playerName] |
 
-## Formatting Responses
 
-Install the tool [jq](https://stedolan.github.io/jq/download/) to prettify the JSON response structures.
-
-### jq examples
-
-Parse the keys:
-```bash
-bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq 'keys'
-```
-
-Prettify the entire response: 
-```bash
-bsc -i=192.168.128.101 -p=XAE28N000058 -m=GET -r="/info" | jq '.data.result'
-```
-
-Parse the model from /info
-```bash
-bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq '.data.result.model'
-```
