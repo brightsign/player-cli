@@ -32,6 +32,7 @@ bsc rmPlayer [playerName]
 ### Features
 
 | Feature | Implemented? | Function | Usage |
+| --------- | ---- | ------------------------ | -------------------------------------- |
 | addPlayer | [x] | Add player configuration to players.json | bsc addPlayer [playerName] [ipAddress] [lDWS username] [lDWS password] |
 | rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer [playerName] |
 | getDI | [x] | Get device info in the form of a JSON object | bsc getDI [playerName] | 
