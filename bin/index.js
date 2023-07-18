@@ -3,21 +3,20 @@
 const yargs = require('yargs');
 const fs = require('fs');
 const formData = require('form-data');
-const currentPath = require('path'); // for absolute path
+let currentPath = require('path'); // for absolute path
 const players = require('./players.json');
 const axios = require('axios');
+const { get } = require('http');
 const AxiosDigestAuth = require('@mhoc/axios-digest-auth').default;
 
 let axiosDigestAuthInst;
 
-// set up CLI
-//const options = yargs
-
+// set up commands
 yargs.scriptName('bsc')
 yargs.usage('Usage: $0 <command> [options]')
 yargs.help()
 
-
+// Get Device Info
 yargs.command('getDI [playerName]', 'Get Device Info', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
@@ -26,6 +25,7 @@ yargs.command('getDI [playerName]', 'Get Device Info', (yargs) => {
   });
 }, getDeviceInfo);
 
+// Add a player to your configuration
 yargs.command('addPlayer [playerName] [ipAddress] [password]', 'Add a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
@@ -44,6 +44,7 @@ yargs.command('addPlayer [playerName] [ipAddress] [password]', 'Add a player', (
   });
 }, addPlayerFunc);
 
+// Remove a player from your configuration
 yargs.command('rmPlayer [playerName]', 'remove a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
@@ -52,6 +53,7 @@ yargs.command('rmPlayer [playerName]', 'remove a player', (yargs) => {
   });
 }, removePlayerFunc);
 
+// Push a file or files to a player (file or directory)
 yargs.command('push [playerName] [FileDirectory] [location]', 'Push files to a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
@@ -70,7 +72,16 @@ yargs.command('push [playerName] [FileDirectory] [location]', 'Push files to a p
   });
 }, pushFunc);
 
-// set up commands
+// Reboot a player
+yargs.command('reboot [playerName]', 'Reboot a player', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+    });
+}, rebootFunc);
+
+// Handle commands
 
 async function pushFunc(argv) {
 
@@ -88,6 +99,10 @@ async function pushFunc(argv) {
   let isFile;
 
   isFile = await checkDir(path);
+  let files = [];
+  if(!isFile) {
+    files = await getFiles(path);
+  }
 
   if (isFile) {
     // if file, push file
@@ -95,71 +110,63 @@ async function pushFunc(argv) {
 
     let fileInput = fs.statSync(absPath);
     let fileSizeInBytes = fileInput.size;
-    let fileStream = fs.createReadStream(absPath);
+    let fileStream = fs.createReadStream(path);
 
     let form = new formData();
-    form.append('field-name', fileStream, {knownLength: fileSizeInBytes});
+    //form.append('field-name', fileStream, {knownLength: fileSizeInBytes});
     //requestOptions.body = form;
+
+    form.append('file', fileStream);
     requestOptions.data = form;
+    requestOptions.headers = form.getHeaders();
 
     try {
-      let response = await requestAxios(requestOptions, playerPW);
-      console.log(response);
+      let response = requestAxios(requestOptions, playerPW);
+      console.log('File uploaded: ' + response);
     } catch (err) {
       console.log(err);
     }
   } else if (!isFile){
-    console.log('pushing directory');
+    
     // if directory, push directory
-    fs.readdir(path, (err, files) => {
-      if (err) {
-        console.error(err);
-        return;
+    console.log('pushing directory');
+
+    for (i = 0; i < files.length; i++) {
+      let fileInput = fs.statSync(files[i]);
+      let fileSizeInBytes = fileInput.size;
+      let fileStream = fs.createReadStream(files[i]);
+
+      let form = new formData();
+      //form.append('field-name', fileStream, {knownLength: fileSizeInBytes});
+      requestOptions.data = form;
+
+      try {
+        //let response = requestAxios(requestOptions, playerPW);
+        //console.log(file + ' uploaded: ' + response.data);
+      } catch (err) {
+        console.log(err);
       }
-
-      files.forEach((file, index) => async () =>{
-        let filePath = absPath + '/' + file;
-
-        console.log(filePath);
-
-        let fileInput = fs.statSync(filePath);
-        let fileSizeInBytes = fileInput.size;
-        let fileStream = fs.createReadStream(filePath);
-
-        let form = new formData();
-        form.append('field-name', fileStream, {knownLength: fileSizeInBytes});
-        requestOptions.data = form;
-
-        try {
-          let response = await requestAxios(requestOptions, playerPW);
-          console.log(response);
-        } catch (err) {
-          console.log(err);
-        }
-      });
-    });
+    }
   }
 }
 
-async function checkDir(path) {
-  return new Promise((resolve, reject) => {
-    fs.stat(path, (err, stats) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      if (stats.isFile()) {
-        //console.log('file');
-        resolve(true);
-      } else if (stats.isDirectory()) {
-        //console.log('directory');
-        resolve(false);
-      } else {
-        reject(new Error('Provided path is neither file nor directory'));
-        return;
-      }
-    });
-  });
+async function rebootFunc(argv) {
+
+  let playerIP = players[argv.playerName].ipAddress;
+  let playerPW = players[argv.playerName].password;
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerIP + '/api/v1/control/reboot',
+  };
+
+  try {
+    let response = await requestAxios(requestOptions, playerPW);
+    console.log('Player rebooted: ' + response);
+  } catch (err) {
+    console.log(err);
+  }
+
 }
 
 function addPlayerFunc(argv) {
@@ -234,6 +241,7 @@ async function getDeviceInfo(argv) {
 
 }
 
+// General functions
 async function prepareAxios(pass) {
   if (axiosDigestAuthInst == null || axiosDigestAuthInst === undefined) {
     const options = {
@@ -258,7 +266,45 @@ async function requestAxios(requestOptions, password) {
   return response.data?.data.result || response.data.result;
 }
 
+async function checkDir(path) {
+  return new Promise((resolve, reject) => {
+    fs.stat(path, (err, stats) => {
+      if (err) {
+        reject(err);
+      }
+      if (stats.isFile()) {
+        //console.log('file');
+        resolve(true);
+      } else if (stats.isDirectory()) {
+        //console.log('directory');
+        resolve(false);
+      } else {
+        reject(new Error('Provided path is neither file nor directory'));
+      }
+    });
+  });
+}
 
+async function getFiles(path) {
+  return new Promise((resolve, reject) => {
+    let files = [];
+    fs.readdir(path, (err, files) => {
+      if (err) {
+        console.error(err);
+        reject(new Error('Error reading directory ' + err));
+      }
+
+      files.forEach((file, index) => async () =>{
+        let filePath = absPath + '/' + file;
+
+        console.log(filePath);
+
+        files[index] = filePath;
+      });
+    });
+    resolve(files);
+  });
+}
 
 // parse the command line arguments
 yargs.argv;
