@@ -213,7 +213,7 @@ async function changePWFunc(argv) {
     console.log(response);
 
     // update password in players.json
-    fs.readFile('./players.json', 'utf8', (error, data) => {
+    fs.readFile('./bin/players.json', 'utf8', (error, data) => {
       if (error) {
         console.error('Error reading file: ', error);
         return;
@@ -229,7 +229,7 @@ async function changePWFunc(argv) {
 
       // write new json object to file
       let modifiedData = JSON.stringify(JSONdata, null, 2);
-      fs.writeFile('./players.json', modifiedData, 'utf8', (error) => {
+      fs.writeFile('./bin/players.json', modifiedData, 'utf8', (error) => {
         if (error) {
           console.error('Error writing file: ', error);
           return;
@@ -287,7 +287,7 @@ async function rebootFunc(argv) {
 }
 
 function addPlayerFunc(argv) {
-  fs.readFile('./players.json', 'utf8', (error, data) => {
+  fs.readFile('./bin/players.json', 'utf8', (error, data) => {
     if (error) {
       console.error('Error reading file: ', error);
       return;
@@ -305,7 +305,7 @@ function addPlayerFunc(argv) {
 
     // write new json object to file
     let modifiedData = JSON.stringify(JSONdata, null, 2);
-    fs.writeFile('./players.json', modifiedData, 'utf8', (error) => {
+    fs.writeFile('./bin/players.json', modifiedData, 'utf8', (error) => {
       if (error) {
         console.error('Error writing file: ', error);
         return;
@@ -316,7 +316,7 @@ function addPlayerFunc(argv) {
 }
 
 function removePlayerFunc(argv) {
-  fs.readFile('./players.json', 'utf8', (error, data) => {
+  fs.readFile('./bin/players.json', 'utf8', (error, data) => {
     if (error) {
       console.error('Error reading file: ', error);
       return;
@@ -330,7 +330,7 @@ function removePlayerFunc(argv) {
 
     // write new json object to file
     let modifiedData = JSON.stringify(JSONdata, null, 2);
-    fs.writeFile('./players.json', modifiedData, 'utf8', (error) => {
+    fs.writeFile('./bin/players.json', modifiedData, 'utf8', (error) => {
       if (error) {
         console.error('Error writing file: ', error);
         return;
