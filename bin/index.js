@@ -26,7 +26,7 @@ yargs.command('getDI [playerName]', 'Get Device Info', (yargs) => {
 }, getDeviceInfo);
 
 // Add a player to your configuration
-yargs.command('addPlayer [playerName] [ipAddress] [password]', 'Add a player', (yargs) => {
+yargs.command('addPlayer [playerName] [ipAddress] [username] [password]', 'Add a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player2',
@@ -36,6 +36,11 @@ yargs.command('addPlayer [playerName] [ipAddress] [password]', 'Add a player', (
     type: 'string',
     default: '',
     describe: 'player IP address'
+  });
+  yargs.positional('username', {
+    type: 'string',
+    default: 'admin',
+    describe: 'player username'
   });
   yargs.positional('password', {
     type: 'string',
@@ -81,10 +86,42 @@ yargs.command('reboot [playerName]', 'Reboot a player', (yargs) => {
     });
 }, rebootFunc);
 
-// Handle commands
+// Check if player has a lDWS password
+yargs.command('checkPW [playerName]', 'Check if player has a lDWS password', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+}, checkPWFunc);
 
+// Change player lDWS password
+yargs.command('changePW [playerName] [newPassword]', 'Change player lDWS password, enter "" for no password', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+  yargs.positional('newPassword', {
+    type: 'string',
+    default: '',
+    describe: 'New password, surround in quotes'
+  });
+}, changePWFunc);
+
+// Take a screenshot
+yargs.command('screenshot [playerName]', 'Take a screenshot', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+}, screenshotFunc);
+
+// Handle commands
 async function pushFunc(argv) {
 
+  let playerUser = players[argv.playerName].username;
   let playerIP = players[argv.playerName].ipAddress;
   let playerPW = players[argv.playerName].password;
 
@@ -99,6 +136,9 @@ async function pushFunc(argv) {
   let isFile;
 
   isFile = await checkDir(path);
+  console.log(isFile);
+
+
   let files = [];
   if(!isFile) {
     files = await getFiles(path);
@@ -121,7 +161,7 @@ async function pushFunc(argv) {
     requestOptions.headers = form.getHeaders();
 
     try {
-      let response = requestAxios(requestOptions, playerPW);
+      let response = requestAxios(requestOptions, playerPW, playerUser);
       console.log('File uploaded: ' + response);
     } catch (err) {
       console.log(err);
@@ -130,15 +170,17 @@ async function pushFunc(argv) {
     
     // if directory, push directory
     console.log('pushing directory');
+    console.log(files);
 
     for (i = 0; i < files.length; i++) {
-      let fileInput = fs.statSync(files[i]);
-      let fileSizeInBytes = fileInput.size;
+      
       let fileStream = fs.createReadStream(files[i]);
 
       let form = new formData();
-      //form.append('field-name', fileStream, {knownLength: fileSizeInBytes});
+      form.append('file', fileStream);
       requestOptions.data = form;
+
+      console.log(files[i]);
 
       try {
         //let response = requestAxios(requestOptions, playerPW);
@@ -150,8 +192,83 @@ async function pushFunc(argv) {
   }
 }
 
+async function changePWFunc(argv) {
+
+  let playerUser = players[argv.playerName].username;
+  let playerIP = players[argv.playerName].ipAddress;
+  let playerPW = players[argv.playerName].password;
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerIP + '/api/v1/control/dws-password',
+    data: {
+      password: argv.newPassword,
+      previous_password: playerPW
+    }
+  };
+
+  try {
+    let response = await requestAxios(requestOptions, playerPW, playerUser);
+    console.log('Password changed: ' + response);
+    console.log(response);
+
+    // update password in players.json
+    fs.readFile('./players.json', 'utf8', (error, data) => {
+      if (error) {
+        console.error('Error reading file: ', error);
+        return;
+      }
+      // parse json object
+      let JSONdata = JSON.parse(data);
+
+      // add new player
+      JSONdata[argv.playerName] = {
+        ipAddress: playerIP,
+        password: argv.newPassword
+      }
+
+      // write new json object to file
+      let modifiedData = JSON.stringify(JSONdata, null, 2);
+      fs.writeFile('./players.json', modifiedData, 'utf8', (error) => {
+        if (error) {
+          console.error('Error writing file: ', error);
+          return;
+        }
+        console.log('Password changed successfully');
+      });
+    });
+
+  } catch (err) {
+    console.log(err);
+  }
+
+  
+
+}
+
+async function checkPWFunc(argv) {
+  
+  let playerUser = players[argv.playerName].username;
+  let playerIP = players[argv.playerName].ipAddress;
+  let playerPW = players[argv.playerName].password;
+
+  let requestOptions = {
+    method: 'GET',
+    url: 'http://' + playerIP + '/api/v1/control/dws-password',
+  };
+
+  try {
+    let response = await requestAxios(requestOptions, playerPW, playerUser);
+    console.log('Player has password set: ' + response.password.isResultValid);
+    console.log('Password is blank: ' + response.password.isBlank);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 async function rebootFunc(argv) {
 
+  let playerUser = players[argv.playerName].username;
   let playerIP = players[argv.playerName].ipAddress;
   let playerPW = players[argv.playerName].password;
 
@@ -161,8 +278,8 @@ async function rebootFunc(argv) {
   };
 
   try {
-    let response = await requestAxios(requestOptions, playerPW);
-    console.log('Player rebooted: ' + response);
+    let response = await requestAxios(requestOptions, playerPW, playerUser);
+    console.log('Player rebooted: ' + response.success);
   } catch (err) {
     console.log(err);
   }
@@ -182,7 +299,8 @@ function addPlayerFunc(argv) {
     // add new player
     JSONdata[argv.playerName] = {
       ipAddress: argv.ipAddress,
-      password: argv.password
+      password: argv.password,
+      username: argv.username
     }
 
     // write new json object to file
@@ -224,6 +342,7 @@ function removePlayerFunc(argv) {
 
 async function getDeviceInfo(argv) {
 
+  let playerUser = players[argv.playerName].username;
   let playerIP = players[argv.playerName].ipAddress;
   let playerPW = players[argv.playerName].password;
 
@@ -232,7 +351,7 @@ async function getDeviceInfo(argv) {
     url: 'http://' + playerIP + '/api/v1/info',
   };
   try {
-    let response = await requestAxios(requestOptions, playerPW);
+    let response = await requestAxios(requestOptions, playerPW, playerUser);
     console.log(response);
   } catch (err) {
     console.log(err);
@@ -241,11 +360,32 @@ async function getDeviceInfo(argv) {
 
 }
 
+async function screenshotFunc(argv) {
+
+  let playerUser = players[argv.playerName].username;
+  let playerIP = players[argv.playerName].ipAddress;
+  let playerPW = players[argv.playerName].password;
+
+  let requestOptions = {
+    method: 'POST',
+    url: 'http://' + playerIP + '/api/v1/snapshot',
+  };
+
+  try {
+    let response = await requestAxios(requestOptions, playerPW, playerUser);
+    console.log('Screenshot taken! Location: ' + response.filename);
+  } catch (err) {
+    console.log(err);
+  }
+
+
+}
+
 // General functions
-async function prepareAxios(pass) {
+async function prepareAxios(pass, user) {
   if (axiosDigestAuthInst == null || axiosDigestAuthInst === undefined) {
     const options = {
-        username: 'admin',
+        username: user,
         password: pass
 
     };
@@ -253,11 +393,11 @@ async function prepareAxios(pass) {
   }
 }
 
-async function requestAxios(requestOptions, password) {
+async function requestAxios(requestOptions, password, playerUser) {
 
   let response;
 
-  prepareAxios(password);
+  prepareAxios(password, playerUser);
 
   response = await axiosDigestAuthInst.request(requestOptions);
   //console.log(JSON.stringify(response.data));

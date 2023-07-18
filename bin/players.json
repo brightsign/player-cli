@@ -1,6 +1,7 @@
 {
   "player1": {
     "ipAddress": "192.168.2.182",
-    "password": "XCG2D1000429"
+    "password": "XCG2D1000429",
+    "username": "admin"
   }
 }
