@@ -178,8 +178,7 @@ async function pushFunc(argv) {
     
     // if directory, push directory
     console.log('pushing directory');
-    console.log(files);
-
+    
     for (i = 0; i < files.length; i++) {
       
       let fileStream = fs.createReadStream(files[i]);
@@ -188,7 +187,7 @@ async function pushFunc(argv) {
       form.append('file', fileStream);
       requestOptions.data = form;
 
-      console.log(files[i]);
+      console.log('Pushing ' + files[i]);
 
       try {
         //let response = await requestAxios(requestOptions, playerPW);
@@ -434,41 +433,17 @@ async function checkDir(path) {
 }
 
 async function getFiles(path) {
-  
-  /*
-  let filesArr = await fs.readdir(path, (err, files));
-  console.log(filesArr);
-  return filesArr;
-  */
 
-  /*
   try {
-    console.log('in getFiles');
     let filesArr = [];
-    fs.readdir(path, (err, files) => {
-      if (err) {
-        console.error(err);
-        console.log('Error reading directory ' + err);
-      }
-
-      files.forEach((file, index) =>{
-        let filePath = path + '/' + file;
-
-        console.log(filePath);
-        console.log('test 2');
-        filesArr[index] = filePath;
-      });
-    });
-    return filesArr;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-  */
-
-  try {
     let files = await fsp.readdir(path);
-    let filesArr = files.map(file => `${path}/${file}`);
+
+    let lastChar = path[path.length - 1];
+    if (lastChar != '/') {
+      filesArr = files.map(file => `${path}/${file}`);
+    } else {
+      filesArr = files.map(file => `${path}${file}`);
+    }
     return filesArr;
   } catch (err) {
     console.error(err);

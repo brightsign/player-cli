@@ -8,7 +8,7 @@ It is assumed you have the requirements for doing basic node.js development alre
 npm i
 ```
 
-Latest Local DWS REST API Documentation as of May 5th, 2023.
+Latest Local DWS REST API Documentation as of July 20, 2023.
 [Local DWS APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs)
 
 ## Installing NPM Module from source
@@ -35,10 +35,16 @@ bsc rmPlayer [playerName]
 | --------- | ---- | ------------------------ | -------------------------------------- |
 | addPlayer | [x] | Add player configuration to players.json | bsc addPlayer [playerName] [ipAddress] [lDWS username] [lDWS password] |
 | rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer [playerName] |
+| editPlayer | [] | Edit an already existing player's info |  |
 | getDI | [x] | Get device info in the form of a JSON object | bsc getDI [playerName] | 
 | push | [] | Push file/files to a player. Specify a single file or a directory of files and the upload location (optional) | bsc push [playerName] [File/Directory] [location] |
 | reboot | [x] | Reboot the specified player | bsc reboot [playerName] |
 | checkPW | [x] | Check if lDWS password is enabled | bsc checkPW [playerName] |
 | screenshot | [x] | Take a screenshot | bsc screenshot [playerName] |
+| delFile | [] | Delete a file on the player |  | 
+| setTime | [] | Set the player's time |  | 
+| toggleDWS | [] | Toggles DWS on/off |  | 
+| getLogs | [] | Gets logs from the player and puts them in a local file |  |
+
 
 
