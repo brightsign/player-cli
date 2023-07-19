@@ -2,6 +2,7 @@
 
 const yargs = require('yargs');
 const fs = require('fs');
+const fsp = require('fs').promises;
 const formData = require('form-data');
 let currentPath = require('path'); // for absolute path
 const players = require('./players.json');
@@ -138,11 +139,18 @@ async function pushFunc(argv) {
   isFile = await checkDir(path);
   console.log(isFile);
 
-
   let files = [];
   if(!isFile) {
-    files = await getFiles(path);
+    console.log('getting files');
+    try {
+      files = await getFiles(path);
+    }
+    catch (err) {
+      console.log('Error getting files from directory!');
+      console.log(err);
+    }
   }
+  console.log(files);
 
   if (isFile) {
     // if file, push file
@@ -161,7 +169,7 @@ async function pushFunc(argv) {
     requestOptions.headers = form.getHeaders();
 
     try {
-      let response = requestAxios(requestOptions, playerPW, playerUser);
+      let response = await requestAxios(requestOptions, playerPW, playerUser);
       console.log('File uploaded: ' + response);
     } catch (err) {
       console.log(err);
@@ -183,7 +191,7 @@ async function pushFunc(argv) {
       console.log(files[i]);
 
       try {
-        //let response = requestAxios(requestOptions, playerPW);
+        //let response = await requestAxios(requestOptions, playerPW);
         //console.log(file + ' uploaded: ' + response.data);
       } catch (err) {
         console.log(err);
@@ -426,24 +434,47 @@ async function checkDir(path) {
 }
 
 async function getFiles(path) {
-  return new Promise((resolve, reject) => {
-    let files = [];
+  
+  /*
+  let filesArr = await fs.readdir(path, (err, files));
+  console.log(filesArr);
+  return filesArr;
+  */
+
+  /*
+  try {
+    console.log('in getFiles');
+    let filesArr = [];
     fs.readdir(path, (err, files) => {
       if (err) {
         console.error(err);
-        reject(new Error('Error reading directory ' + err));
+        console.log('Error reading directory ' + err);
       }
 
-      files.forEach((file, index) => async () =>{
-        let filePath = absPath + '/' + file;
+      files.forEach((file, index) =>{
+        let filePath = path + '/' + file;
 
         console.log(filePath);
-
-        files[index] = filePath;
+        console.log('test 2');
+        filesArr[index] = filePath;
       });
     });
-    resolve(files);
-  });
+    return filesArr;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+  */
+
+  try {
+    let files = await fsp.readdir(path);
+    let filesArr = files.map(file => `${path}/${file}`);
+    return filesArr;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+
 }
 
 // parse the command line arguments
