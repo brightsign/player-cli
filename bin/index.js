@@ -163,6 +163,8 @@ async function pushFunc(argv) {
     let form = new formData();
     //form.append('file', fileStream);
 
+    test line
+
     let fileToUpload = await fsp.readFile(path);
     //console.log(fileToUpload);
     requestOptions.headers = {
