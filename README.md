@@ -15,14 +15,18 @@ npm i
 Latest Local DWS REST API Documentation as of July 20, 2023.
 [Local DWS APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs)
 
+## Create players.json
+
+You will need to create the players.json file. This can be done by deleting the '.example' from the end of the file in cli-src, or by creating a new players.json file in the same folder. You can populate this object yourself, or use the command line. 
+
 ## Installing NPM Module from source
 
 The following will need to be run to build the npm module. `bsc` will be built and ready to use. 
 
 ```bash
 npm -g install
-bsc --help
 ```
+
 
 ## Usage
 

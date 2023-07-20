@@ -170,7 +170,8 @@ async function pushFunc(argv) {
     let form = new formData();
     //form.append('file', fileStream);
 
-    let fileToUpload = await fsp.readFile(path);
+    //let fileToUpload = await fsp.readFile(path);
+    let fileToUpload = fs.createReadStream(path);
     //console.log(fileToUpload);
     form.append("file", fileToUpload, {filename: path});
     requestOptions.body = form;
@@ -197,7 +198,7 @@ async function pushFunc(argv) {
     for (i = 0; i < files.length; i++) {
       
       //let fileStream = fs.createReadStream(files[i]);
-      let fileToUpload = await fsp.readFile(files[i]);
+      let fileToUpload = fs.createReadStream(files[i]);
 
       let form = new formData();
       form.append('file', fileToUpload, {filename: files[i]});
