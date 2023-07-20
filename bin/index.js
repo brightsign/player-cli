@@ -232,8 +232,8 @@ async function changePWFunc(argv) {
 
   try {
     let response = await requestFetch(requestOptions);
-    console.log('Password changed: ' + response);
-    console.log(response);
+    console.log('Password changed (player side): ' + response.data.result.success);
+    //console.log(response);
 
     // update password in players.json
     fs.readFile('./bin/players.json', 'utf8', (error, data) => {
@@ -257,7 +257,7 @@ async function changePWFunc(argv) {
           console.error('Error writing file: ', error);
           return;
         }
-        console.log('Password changed successfully');
+        console.log('Password changed (locally): successful');
       });
     });
 
@@ -282,8 +282,10 @@ async function checkPWFunc(argv) {
 
   try {
     let response = await requestFetch(requestOptions);
-    console.log('Player has password set: ' + response.password.isResultValid);
-    console.log('Password is blank: ' + response.password.isBlank);
+    //console.log(response);
+    //console.log(response.data.result.password);
+    //console.log('Player has password set: ' + response.data.result.password.);
+    console.log('Password is blank: ' + response.data.result.password.isBlank);
   } catch (err) {
     console.log(err);
   }
