@@ -17,7 +17,12 @@ Latest Local DWS REST API Documentation as of July 20, 2023.
 
 ## Create players.json
 
-You will need to create the players.json file. This can be done by deleting the '.example' from the end of the file in cli-src, or by creating a new players.json file in the same folder. You can populate this object yourself, or use the command line. 
+You will need to create the players.json file. This can be done by deleting the '.example' from the end of the file in cli-src, or by creating a new players.json file in the same folder. Once this file is created, and the module is installed, you can populate this object yourself, or use the command line:
+```
+bsc addPlayer <playerName> <ipAddress> [username] [password]
+```
+
+**Make sure to install the CLI before using the above command to edit players.json.**
 
 ## Installing NPM Module from source
 
