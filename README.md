@@ -1,5 +1,9 @@
 # BrightSign CLI API Tool
 
+**NOTE**: the code in this branch assumes that there is no password set on the player. This is done for ease of development.
+
+**NOTE**: This branch also assumes an sd card on the player. In the future there will be a storage type option in players.json, however this is not implemented yet. 
+
 The purpose of this package is to allow users to communicate with the BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs through a simple CLI tool, `bsc`. 
 
 It is assumed you have the requirements for doing basic node.js development already installed.  To support this example, you also need to run the following in this folder:
@@ -37,7 +41,7 @@ bsc rmPlayer [playerName]
 | rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer [playerName] |
 | editPlayer | [] | Edit an already existing player's info |  |
 | getDI | [x] | Get device info in the form of a JSON object | bsc getDI [playerName] | 
-| push | [] | Push file/files to a player. Specify a single file or a directory of files and the upload location (optional) | bsc push [playerName] [File/Directory] [location] |
+| push | [x] | Push file/files to a player. Specify a single file or a directory of files and the upload location (optional) | bsc push [playerName] [File/Directory] [location] |
 | reboot | [x] | Reboot the specified player | bsc reboot [playerName] |
 | checkPW | [x] | Check if lDWS password is enabled | bsc checkPW [playerName] |
 | screenshot | [x] | Take a screenshot | bsc screenshot [playerName] |

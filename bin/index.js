@@ -27,7 +27,7 @@ yargs.usage('Usage: $0 <command> [options]')
 yargs.help()
 
 // Get Device Info
-yargs.command('getDI [playerName]', 'Get Device Info', (yargs) => {
+yargs.command('getDI <playerName>', 'Get Device Info', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -36,7 +36,7 @@ yargs.command('getDI [playerName]', 'Get Device Info', (yargs) => {
 }, getDeviceInfo);
 
 // Add a player to your configuration
-yargs.command('addPlayer [playerName] [ipAddress] [username] [password]', 'Add a player', (yargs) => {
+yargs.command('addPlayer <playerName> <ipAddress> [username] [password]', 'Add a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player2',
@@ -58,7 +58,7 @@ yargs.command('addPlayer [playerName] [ipAddress] [username] [password]', 'Add a
 }, addPlayerFunc);
 
 // Remove a player from your configuration
-yargs.command('rmPlayer [playerName]', 'remove a player', (yargs) => {
+yargs.command('rmPlayer <playerName>', 'remove a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player2',
@@ -67,7 +67,7 @@ yargs.command('rmPlayer [playerName]', 'remove a player', (yargs) => {
 }, removePlayerFunc);
 
 // Push a file or files to a player (file or directory)
-yargs.command('push [playerName] [FileDirectory] [location]', 'Push files to a player', (yargs) => {
+yargs.command('push <playerName> <FileDirectory> [location]', 'Push files to a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -86,7 +86,7 @@ yargs.command('push [playerName] [FileDirectory] [location]', 'Push files to a p
 }, pushFunc);
 
 // Reboot a player
-yargs.command('reboot [playerName]', 'Reboot a player', (yargs) => {
+yargs.command('reboot <playerName>', 'Reboot a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -95,7 +95,7 @@ yargs.command('reboot [playerName]', 'Reboot a player', (yargs) => {
 }, rebootFunc);
 
 // Check if player has a lDWS password
-yargs.command('checkPW [playerName]', 'Check if player has a lDWS password', (yargs) => {
+yargs.command('checkPW <playerName>', 'Check if player has a lDWS password', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -104,7 +104,7 @@ yargs.command('checkPW [playerName]', 'Check if player has a lDWS password', (ya
 }, checkPWFunc);
 
 // Change player lDWS password
-yargs.command('changePW [playerName] [newPassword]', 'Change player lDWS password, enter "" for no password', (yargs) => {
+yargs.command('changePW <playerName> [newPassword]', 'Change player lDWS password, enter "" for no password', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -118,7 +118,7 @@ yargs.command('changePW [playerName] [newPassword]', 'Change player lDWS passwor
 }, changePWFunc);
 
 // Take a screenshot
-yargs.command('screenshot [playerName]', 'Take a screenshot', (yargs) => {
+yargs.command('screenshot <playerName>', 'Take a screenshot', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -144,11 +144,11 @@ async function pushFunc(argv) {
   let isFile;
 
   isFile = await checkDir(path);
-  console.log(isFile);
+  //console.log(isFile);
 
   let files = [];
   if(!isFile) {
-    console.log('getting files');
+    console.log('getting files...');
     try {
       files = await getFiles(path);
     }
@@ -161,53 +161,53 @@ async function pushFunc(argv) {
   if (isFile) {
     // if file, push file
     console.log('pushing file: ' + absPath);
-    console.log('1');
+    //console.log('1');
     //let fileStream = fs.createReadStream(path);
     //let fileStream = await createReadStreamFunc(path);
     //console.log(fileStream);
-    console.log('2');
+    //console.log('2');
 
     let form = new formData();
     //form.append('file', fileStream);
 
     let fileToUpload = await fsp.readFile(path);
     //console.log(fileToUpload);
-    requestOptions.headers = {
-      'Content-Type': 'multipart/form-data'
-    };
-    form.append("field-name", fileToUpload);
-    requestOptions.data = form;
+    form.append("file", fileToUpload, {filename: path});
+    requestOptions.body = form;
     //requestOptions.headers = form.getHeaders();
     
     
 
-    console.log('3');
-    console.log(requestOptions); 
+    //console.log('3');
+    //console.log(requestOptions); 
 
     try {
       let response = await requestFetch(requestOptions);
-      console.log('File uploaded: ' + response);
+      //console.log(response);
+      console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
+      //console.log(response.data.result.results)
     } catch (err) {
       console.log(err);
     }
   } else if (!isFile){
     
     // if directory, push directory
-    console.log('pushing directory');
+    //console.log('pushing directory');
     
     for (i = 0; i < files.length; i++) {
       
-      let fileStream = fs.createReadStream(files[i]);
+      //let fileStream = fs.createReadStream(files[i]);
+      let fileToUpload = await fsp.readFile(files[i]);
 
       let form = new formData();
-      form.append('file', fileStream);
-      requestOptions.data = form;
+      form.append('file', fileToUpload, {filename: files[i]});
+      requestOptions.body = form;
 
       console.log('Pushing ' + files[i]);
 
       try {
-        //let response = await requestFetch(requestOptions);
-        //console.log(file + ' uploaded: ' + response.data);
+        let response = await requestFetch(requestOptions);
+        console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
       } catch (err) {
         console.log(err);
       }
