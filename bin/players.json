@@ -3,5 +3,18 @@
     "ipAddress": "192.168.2.182",
     "password": "XCG2D1000429",
     "username": "admin"
+  },
+  "walmartLS": {
+    "ipAddress": "192.168.2.169",
+    "password": "42D936003579",
+    "username": "admin"
+  },
+  "player2": {
+    "username": "admin"
+  },
+  "walmartXT": {
+    "ipAddress": "192.168.2.163",
+    "password": "D7E87H004635",
+    "username": "admin"
   }
 }

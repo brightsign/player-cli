@@ -9,6 +9,8 @@ const players = require('./players.json');
 const axios = require('axios');
 const { get } = require('http');
 const AxiosDigestAuth = require('@mhoc/axios-digest-auth').default;
+const util = require('util');
+const createReadStreamPromise = util.promisify(fs.createReadStream);
 
 let axiosDigestAuthInst;
 
@@ -35,7 +37,6 @@ yargs.command('addPlayer [playerName] [ipAddress] [username] [password]', 'Add a
   });
   yargs.positional('ipAddress', {
     type: 'string',
-    default: '',
     describe: 'player IP address'
   });
   yargs.positional('username', {
@@ -45,7 +46,6 @@ yargs.command('addPlayer [playerName] [ipAddress] [username] [password]', 'Add a
   });
   yargs.positional('password', {
     type: 'string',
-    default: '',
     describe: 'player password'
   });
 }, addPlayerFunc);
@@ -150,23 +150,32 @@ async function pushFunc(argv) {
       console.log(err);
     }
   }
-  console.log(files);
 
   if (isFile) {
     // if file, push file
     console.log('pushing file: ' + absPath);
-
-    let fileInput = fs.statSync(absPath);
-    let fileSizeInBytes = fileInput.size;
-    let fileStream = fs.createReadStream(path);
+    console.log('1');
+    //let fileStream = fs.createReadStream(path);
+    //let fileStream = await createReadStreamFunc(path);
+    //console.log(fileStream);
+    console.log('2');
 
     let form = new formData();
-    //form.append('field-name', fileStream, {knownLength: fileSizeInBytes});
-    //requestOptions.body = form;
+    //form.append('file', fileStream);
 
-    form.append('file', fileStream);
+    let fileToUpload = await fsp.readFile(path);
+    //console.log(fileToUpload);
+    requestOptions.headers = {
+      'Content-Type': 'multipart/form-data'
+    };
+    form.append("field-name", fileToUpload);
     requestOptions.data = form;
-    requestOptions.headers = form.getHeaders();
+    //requestOptions.headers = form.getHeaders();
+    
+    
+
+    console.log('3');
+    console.log(requestOptions); 
 
     try {
       let response = await requestAxios(requestOptions, playerPW, playerUser);
@@ -451,6 +460,30 @@ async function getFiles(path) {
   }
 
 }
+
+function createReadStreamFunc(path) {
+  console.log('createReadStreamFunc');
+  return new Promise((resolve, reject) => {
+    //let fileStream = createReadStreamPromise(path);
+    console.log('in promise');
+    let fileStream = fs.createReadStream(path);
+
+    fileStream.on('open', () => {
+      console.log('fileStream open');
+    });
+
+    fileStream.on('end', () => {
+      resolve(fileStream);
+      console.log('fileStream end');
+    });
+
+    fileStream.on('error', (err) => {
+      reject(err);
+    });
+
+  });
+} 
+
 
 // parse the command line arguments
 yargs.argv;

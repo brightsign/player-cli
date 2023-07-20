@@ -45,6 +45,7 @@ bsc rmPlayer [playerName]
 | setTime | [] | Set the player's time |  | 
 | toggleDWS | [] | Toggles DWS on/off |  | 
 | getLogs | [] | Gets logs from the player and puts them in a local file |  |
+| facReset | [] | Factory resets the player |  |
 
 
 
