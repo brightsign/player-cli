@@ -185,7 +185,7 @@ async function pushFunc(argv) {
     console.log(requestOptions); 
 
     try {
-      let response = await requestAxios(requestOptions, playerPW, playerUser);
+      let response = await requestFetch(requestOptions);
       console.log('File uploaded: ' + response);
     } catch (err) {
       console.log(err);
@@ -206,7 +206,7 @@ async function pushFunc(argv) {
       console.log('Pushing ' + files[i]);
 
       try {
-        //let response = await requestAxios(requestOptions, playerPW);
+        //let response = await requestFetch(requestOptions);
         //console.log(file + ' uploaded: ' + response.data);
       } catch (err) {
         console.log(err);
@@ -231,7 +231,7 @@ async function changePWFunc(argv) {
   };
 
   try {
-    let response = await requestAxios(requestOptions, playerPW, playerUser);
+    let response = await requestFetch(requestOptions);
     console.log('Password changed: ' + response);
     console.log(response);
 
@@ -281,7 +281,7 @@ async function checkPWFunc(argv) {
   };
 
   try {
-    let response = await requestAxios(requestOptions, playerPW, playerUser);
+    let response = await requestFetch(requestOptions);
     console.log('Player has password set: ' + response.password.isResultValid);
     console.log('Password is blank: ' + response.password.isBlank);
   } catch (err) {
@@ -301,8 +301,9 @@ async function rebootFunc(argv) {
   };
 
   try {
-    let response = await requestAxios(requestOptions, playerPW, playerUser);
-    console.log('Player rebooted: ' + response.success);
+    let response = await requestFetch(requestOptions);
+    //console.log(response);
+    console.log('Player rebooted: ' + response.data.result.success);
   } catch (err) {
     console.log(err);
   }
@@ -395,8 +396,9 @@ async function screenshotFunc(argv) {
   };
 
   try {
-    let response = await requestAxios(requestOptions, playerPW, playerUser);
-    console.log('Screenshot taken! Location: ' + response.filename);
+    let response = await requestFetch(requestOptions);
+    //console.log(response);
+    console.log('Screenshot taken! Location: ' + response.data.result.filename);
   } catch (err) {
     console.log(err);
   }
@@ -408,7 +410,8 @@ async function screenshotFunc(argv) {
 async function requestFetch(requestOptions) {
   try {
     let response = await fetch(requestOptions.url, requestOptions);
-    return response;
+    let resData = await response.json();
+    return resData;
   } catch (err) {
     console.error(err);
     throw err;
