@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 
+// The version of code stored in this branch explicitly assumes that the player 
+// does NOT have a lDWS password set. Using this CLI with a player that has a
+// lDWS password set will NOT WORK
+
+// refer to branch 'pe-28-updated' for a version of code that works with players
+// that have a lDWS password set
+
 const yargs = require('yargs');
 const fs = require('fs');
 const fsp = require('fs').promises;
@@ -7,12 +14,12 @@ const formData = require('form-data');
 let currentPath = require('path'); // for absolute path
 const players = require('./players.json');
 const axios = require('axios');
-const { get } = require('http');
+//const { get } = require('http');
 const AxiosDigestAuth = require('@mhoc/axios-digest-auth').default;
 const util = require('util');
 const createReadStreamPromise = util.promisify(fs.createReadStream);
+const fetch = require('node-fetch');
 
-let axiosDigestAuthInst;
 
 // set up commands
 yargs.scriptName('bsc')
@@ -162,8 +169,6 @@ async function pushFunc(argv) {
 
     let form = new formData();
     //form.append('file', fileStream);
-
-    test line
 
     let fileToUpload = await fsp.readFile(path);
     //console.log(fileToUpload);
@@ -369,7 +374,7 @@ async function getDeviceInfo(argv) {
     url: 'http://' + playerIP + '/api/v1/info',
   };
   try {
-    let response = await requestAxios(requestOptions, playerPW, playerUser);
+    let response = await requestFetch(requestOptions);
     console.log(response);
   } catch (err) {
     console.log(err);
@@ -400,28 +405,14 @@ async function screenshotFunc(argv) {
 }
 
 // General functions
-async function prepareAxios(pass, user) {
-  if (axiosDigestAuthInst == null || axiosDigestAuthInst === undefined) {
-    const options = {
-        username: user,
-        password: pass
-
-    };
-    axiosDigestAuthInst = new AxiosDigestAuth(options);
+async function requestFetch(requestOptions) {
+  try {
+    let response = await fetch(requestOptions.url, requestOptions);
+    return response;
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
-}
-
-async function requestAxios(requestOptions, password, playerUser) {
-
-  let response;
-
-  prepareAxios(password, playerUser);
-
-  response = await axiosDigestAuthInst.request(requestOptions);
-  //console.log(JSON.stringify(response.data));
-
-
-  return response.data?.data.result || response.data.result;
 }
 
 async function checkDir(path) {
