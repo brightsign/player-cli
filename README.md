@@ -46,19 +46,28 @@ bsc rmPlayer [playerName]
 
 | Feature | Implemented? | Function | Usage |
 | --------- | ---- | ------------------------ | -------------------------------------- |
-| addPlayer | [x] | Add player configuration to players.json | bsc addPlayer [playerName] [ipAddress] [lDWS username] [lDWS password] |
-| rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer [playerName] |
+| addPlayer | [x] | Add player configuration to players.json | bsc addPlayer <playerName> <ipAddress> [lDWS username] [lDWS password] |
+| rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer <playerName> |
 | editPlayer | [] | Edit an already existing player's info |  |
-| getDI | [x] | Get device info in the form of a JSON object | bsc getDI [playerName] | 
-| push | [x] | Push file/files to a player. Specify a single file or a directory of files and the upload location (optional) | bsc push [playerName] [File/Directory] [location] |
-| reboot | [x] | Reboot the specified player | bsc reboot [playerName] |
-| checkPW | [x] | Check if lDWS password is enabled | bsc checkPW [playerName] |
-| screenshot | [x] | Take a screenshot | bsc screenshot [playerName] |
+| getDI | [x] | Get device info in the form of a JSON object | bsc getDI <playerName> | 
+| put | [x] | Put file/files on a player. Specify a single file or a directory of files and the upload location (optional) | bsc put <playerName> <File/Directory> [location] |
+| reboot | [x] | Reboot the specified player | bsc reboot <playerName> |
+| checkPW | [x] | Check if lDWS password is enabled | bsc checkPW <playerName> |
+| screenshot | [x] | Take a screenshot | bsc screenshot <playerName> |
 | delFile | [] | Delete a file on the player |  | 
 | setTime | [] | Set the player's time |  | 
 | toggleDWS | [] | Toggles DWS on/off |  | 
 | getLogs | [] | Gets logs from the player and puts them in a local file |  |
 | facReset | [] | Factory resets the player |  |
 
+bsc also supports raw API requests:
+```
+bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawResponse]
+```
+For example:
+```
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"'
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"'
+```
 
-
+Please note that raw API calls does not yet support putting files on the player.

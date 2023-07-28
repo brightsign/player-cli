@@ -23,8 +23,16 @@ const fetch = require('node-fetch');
 
 // set up commands
 yargs.scriptName('bsc')
-yargs.usage('Usage: $0 <command> [options]')
+yargs.usage('Built-in command usage: $0 <command> [options]')
 yargs.help()
+yargs.alias('h', 'help')
+
+// give examples of raw usage
+yargs.usage('Raw usage: bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawResponse]');
+yargs.usage('');
+yargs.usage('       Raw Request Examples:');
+yargs.usage('       bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"');
+yargs.usage('       bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"');
 
 // Get Device Info
 yargs.command('getDI <playerName>', 'Get Device Info', (yargs) => {
@@ -67,7 +75,7 @@ yargs.command('rmPlayer <playerName>', 'remove a player', (yargs) => {
 }, removePlayerFunc);
 
 // Push a file or files to a player (file or directory)
-yargs.command('push <playerName> <FileDirectory> [location]', 'Push files to a player', (yargs) => {
+yargs.command('put <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -76,7 +84,7 @@ yargs.command('push <playerName> <FileDirectory> [location]', 'Push files to a p
   yargs.positional('FileDirectory', {
     type: 'string',
     default: '',
-    describe: 'File or directory to push'
+    describe: 'File or directory to put'
   });
   yargs.positional('location', {
     type: 'string',
@@ -126,7 +134,61 @@ yargs.command('screenshot <playerName>', 'Take a screenshot', (yargs) => {
   });
 }, screenshotFunc);
 
+// Get logs
+/*
+yargs.command('getLogs <playerName>', 'Get logs', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+}, getLogsFunc);
+*/
+// Edit Registry
+
+
+// 
+
+yargs.command('raw', 'allow for raw input', (yargs) => {
+  yargs.option('i', { alias: 'targetIp', describe: 'IP Address of Target Player', type: 'string', demandOption: true });
+  yargs.option('p', { alias: 'targetPassword', describe: 'Password of Target Player', type: 'string', demandOption: false });
+  yargs.option('m', { alias: 'reqMethod', describe: 'Request method type', type: 'string', demandOption: true });
+  yargs.option('r', { alias: 'reqRoutes', describe: 'Request url route', type: 'string', demandOption: true });
+  yargs.option('a', { alias: 'rawResponse', describe: 'Raw HTTP REST Response', type: 'boolean', demandOption: false });
+}, handleRawRequestFunc);
+
 // Handle commands
+async function handleRawRequestFunc(argv) {
+  console.log('Handling Raw Request');
+  let ipAddressRaw = argv.i;
+  let targetPasswordRaw = argv.p;
+  let requestMethodRaw = argv.m;
+  let requestRouteRaw = argv.r;
+  let rawResponseRaw = argv.a;
+
+  let requestOptions = {
+    method: requestMethodRaw,
+    url: 'http://' + ipAddressRaw + '/api/v1/' + requestRouteRaw,
+  };
+  
+  let response = await requestFetch(requestOptions);
+  
+  if(rawResponseRaw) {
+    console.log(response);
+  } else {
+    console.log(response.data.result);
+  }
+}
+
+async function getLogsFunc(argv) {
+  let playerUser = players[argv.playerName].username;
+  let playerIP = players[argv.playerName].ipAddress;
+  let playerPW = players[argv.playerName].password;
+
+
+
+}
+
 async function pushFunc(argv) {
 
   let playerUser = players[argv.playerName].username;
@@ -485,4 +547,5 @@ function createReadStreamFunc(path) {
 
 
 // parse the command line arguments
+//yargs.parse();
 yargs.argv;
