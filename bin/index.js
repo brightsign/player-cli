@@ -155,6 +155,7 @@ yargs.command('raw', 'allow for raw input', (yargs) => {
   yargs.option('m', { alias: 'reqMethod', describe: 'Request method type', type: 'string', demandOption: true });
   yargs.option('r', { alias: 'reqRoutes', describe: 'Request url route', type: 'string', demandOption: true });
   yargs.option('a', { alias: 'rawResponse', describe: 'Raw HTTP REST Response', type: 'boolean', demandOption: false });
+  yargs.option('f', { alias: 'file', describe: 'Path to file to push if pushing file', type: 'string', demandOption: false })
 }, handleRawRequestFunc);
 
 // Handle commands
@@ -165,12 +166,21 @@ async function handleRawRequestFunc(argv) {
   let requestMethodRaw = argv.m;
   let requestRouteRaw = argv.r;
   let rawResponseRaw = argv.a;
+  let fileRaw = argv.f;
 
   let requestOptions = {
     method: requestMethodRaw,
     url: 'http://' + ipAddressRaw + '/api/v1/' + requestRouteRaw,
   };
   
+  if (fileRaw != null) {
+    let form = new formData();
+    let fileToUpload = fs.createReadStream(fileRaw);
+    console.log('Uploading file: ', fileRaw);
+    form.append("file", fileToUpload, {filename: fileRaw});
+    requestOptions.body = form;
+  }
+
   let response = await requestFetch(requestOptions);
   
   if(rawResponseRaw) {
