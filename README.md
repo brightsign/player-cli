@@ -22,7 +22,7 @@ You will need to create the players.json file. This can be done by deleting the 
 bsc addPlayer <playerName> <ipAddress> [username] [password]
 ```
 
-**Make sure to install the CLI before using the above command to edit players.json.**
+**Make sure to install the CLI before using the above command to edit players.json.** [Install the CLI](#installing-npm-module-from-source)
 
 ## Installing NPM Module from source
 First, clone this repository to your preferred location. Once cloned, navigate to the directory that you stored this code in.
@@ -46,14 +46,15 @@ bsc rmPlayer [playerName]
 ### Features
 
 | Feature | Implemented? | Function | Usage |
-| addPlayer | [x] | Add player configuration to players.json | bsc addPlayer [playerName] [ipAddress] [lDWS username] [lDWS password] |
-| rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer [playerName] |
+| --------- | ---- | ------------------------ | -------------------------------------- |
+| addPlayer | [x] | Add player configuration to players.json | bsc addPlayer <playerName> <ipAddress> [lDWS username] [lDWS password] |
+| rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer <playerName> |
 | editPlayer | [] | Edit an already existing player's info |  |
-| getDI | [x] | Get device info in the form of a JSON object | bsc getDI [playerName] | 
-| push | [x] | Push file/files to a player. Specify a single file or a directory of files and the upload location (optional) | bsc push [playerName] [File/Directory] [location] |
-| reboot | [x] | Reboot the specified player | bsc reboot [playerName] |
-| checkPW | [x] | Check if lDWS password is enabled | bsc checkPW [playerName] |
-| screenshot | [x] | Take a screenshot | bsc screenshot [playerName] |
+| getDI | [x] | Get device info in the form of a JSON object | bsc getDI <playerName> | 
+| put | [x] | Put file/files on a player. Specify a single file or a directory of files and the upload location (optional) | bsc put <playerName> <File/Directory> [location] |
+| reboot | [x] | Reboot the specified player | bsc reboot <playerName> |
+| checkPW | [x] | Check if lDWS password is enabled | bsc checkPW <playerName> |
+| screenshot | [x] | Take a screenshot | bsc screenshot <playerName> |
 | delFile | [] | Delete a file on the player |  | 
 | setTime | [] | Set the player's time |  | 
 | toggleDWS | [] | Toggles DWS on/off |  | 
@@ -61,4 +62,38 @@ bsc rmPlayer [playerName]
 | facReset | [] | Factory resets the player |  |
 
 
+## Raw Requests:
+bsc also supports raw API requests:
+```
+bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawResponse]
+```
+For example:
+```
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"
+```
+Push a file with raw command:
+```
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=PUT -r="files/sd" -f="PATH"
+```
 
+### Formatting Responses
+
+Install the tool [jq](https://stedolan.github.io/jq/download/) to prettify the JSON response structures.
+
+#### jq examples
+
+Parse the keys:
+```bash
+bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq 'keys'
+```
+
+Prettify the entire response: 
+```bash
+bsc -i=192.168.128.101 -p=XAE28N000058 -m=GET -r="/info" | jq '.data.result'
+```
+
+Parse the model from /info
+```bash
+bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq '.data.result.model'
+```
