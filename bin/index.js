@@ -164,7 +164,200 @@ yargs.command('delFile <playerName> <file>', 'Delete a file', (yargs) => {
   });
 }, deleteFileFunc);
 
+// getTime 
+yargs.command('getTime <playerName>', 'Get player time', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+}, getTimeFunc);
+
+// getFiles
+yargs.command('getFiles <playerName> [path]', 'Get files on player', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+  yargs.positional('path', {
+    type: 'string',
+    default: '',
+    describe: 'Path to get files from'
+  });
+}, getFilesFunc);
+
+// check DWS
+yargs.command('checkDWS <playerName>', 'Check if player has a DWS password', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+}, checkDWSFunc);
+
+// set DWS
+yargs.command('setDWS <playerName> <onOff>', 'set DWS on/off', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+  yargs.positional('onOff', {
+    type: 'string',
+    default: 'on',
+    describe: 'Turn DWS on or off'
+  });
+}, setDWSFunc);
+
+// get registry
+yargs.command('getReg <playerName> [section] [key]', 'Get registry values', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+  yargs.positional('section', {
+    type: 'string',
+    default: '',
+    describe: 'Registry section'
+  });
+  yargs.positional('key', {
+    type: 'string',
+    default: '',
+    describe: 'Registry key'
+  });
+},getRegFunc);
+
 // Handle commands
+async function getRegFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let section = argv.section;
+  let key = argv.key;
+  let requestOptions;
+
+  if (section == '') {
+    requestOptions = {
+      method: 'GET',
+      url: 'http://' + playerData[1] + '/api/v1/registry',
+    };
+  } else {
+    requestOptions = {
+      method: 'GET',
+      url: 'http://' + playerData[1] + '/api/v1/registry/' + section + '/' + key,
+    };
+  }
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response.data.result.value);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function setDWSFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let onOff = argv.onOff;
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
+    body: {"enable": true},
+  };
+
+  if (onOff == 'on') {
+    requestOptions.body.enable = true;
+    //console.log('Turning DWS on');
+  } else if (onOff == 'off') {
+    requestOptions.body.enable = false;
+    //console.log('Turning DWS off');
+  } else {
+    console.log('Invalid on/off value');
+    return;
+  }
+  console.log(requestOptions);
+  try {
+    let response = await requestFetch(requestOptions);
+    if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
+      console.log('DWS turned on, player rebooting');
+    } else if (response.data.result.success && response.data.result.reboot && onOff == 'off') {
+      console.log('DWS turned off, player rebooting');
+    } else if (response.data.result.success && !response.data.result.reboot && onOff == 'on') {
+      console.log('DWS turned on');
+    } else if (response.data.result.success && !response.data.result.reboot && onOff == 'off') {
+      console.log('DWS turned off');
+    } else {
+      console.log('set DWS failed');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function checkDWSFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let requestOptions = {
+    method: 'GET',
+    url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
+  };
+
+  try {
+    let response = await requestFetch(requestOptions);
+    if (response.data.result.value) {
+      console.log('DWS is enabled')
+    } else {
+      console.log('DWS is disabled')
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getFilesFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let playerPath = argv.path;
+
+  let requestOptions = {
+    method: 'GET',
+    url: 'http://' + playerData[1] + '/api/v1/files/sd' + playerPath,
+  };
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response.data.result.files);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getTimeFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let requestOptions = {
+    method: 'GET',
+    url: 'http://' + playerData[1] + '/api/v1/time',
+  };
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response.data.result);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 async function deleteFileFunc(argv) {
   // get player data from argv
   let playerData = await pullData(argv);
