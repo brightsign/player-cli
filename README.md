@@ -54,8 +54,9 @@ bsc rmPlayer [playerName]
 | reboot | [x] | Reboot the specified player | bsc reboot \<playerName> |
 | checkPW | [x] | Check if lDWS password is enabled | bsc checkPW \<playerName> |
 | screenshot | [x] | Take a screenshot | bsc screenshot \<playerName> |
-| delFile | [] | Delete a file on the player |  | 
+| delFile | [x] | Delete a file on the player | bsc delFile \<playerName> \<File> | 
 | setTime | [] | Set the player's time |  | 
+| getTime | [] | Get the player's time |  | 
 | toggleDWS | [] | Toggles DWS on/off |  | 
 | getLogs | [x] | Gets logs from the player and puts them in a local file | bsc getLogs \<playerName> |
 | facReset | [] | Factory resets the player |  |
