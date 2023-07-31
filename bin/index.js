@@ -6,6 +6,7 @@ const formData = require('form-data');
 let currentPath = require('path'); // for absolute path
 const players = require('./players.json');
 const fetch = require('node-fetch');
+const os = require('os');
 
 let axiosDigestAuthInst;
 
@@ -160,7 +161,344 @@ yargs.command('delFile <playerName> <file>', 'Delete a file', (yargs) => {
   });
 }, deleteFileFunc);
 
+// getTime 
+yargs.command('getTime <playerName>', 'Get player time', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+}, getTimeFunc);
+
+// getFiles
+yargs.command('getFiles <playerName> [path]', 'Get files on player', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+  yargs.positional('path', {
+    type: 'string',
+    default: '',
+    describe: 'Path to get files from'
+  });
+}, getFilesFunc);
+
+// check DWS
+yargs.command('checkDWS <playerName>', 'Check if player has a DWS password', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+}, checkDWSFunc);
+
+// set DWS
+yargs.command('setDWS <playerName> <onOff>', 'set DWS on/off', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+  yargs.positional('onOff', {
+    type: 'string',
+    default: 'on',
+    describe: 'Turn DWS on or off'
+  });
+}, setDWSFunc);
+
+// get registry
+yargs.command('getReg <playerName> [section] [key]', 'Get registry values', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+  yargs.positional('section', {
+    type: 'string',
+    default: '',
+    describe: 'Registry section'
+  });
+  yargs.positional('key', {
+    type: 'string',
+    default: '',
+    describe: 'Registry key'
+  });
+},getRegFunc);
+
+// set time
+yargs.command('setTime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+  yargs.positional('timezone', {
+    type: 'string',
+    default: 'America/New_York',
+    describe: 'Timezone'
+  });
+  yargs.positional('time', {
+    type: 'string',
+    default: '',
+    describe: 'Time, hh:mm:ss'
+  });
+  yargs.positional('date', {
+    type: 'string',
+    default: '',
+    describe: 'Date, YYYY-MM-DD'
+  });
+  yargs.positional('applyTimezone', {
+    type: 'boolean',
+    default: true,
+    describe: 'Apply timezone to time'
+  });
+}, setTimeFunc);
+
+// Factory reset
+yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+}, factoryResetFunc);
+
+// edit registry
+yargs.command('editReg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+  yargs.positional('section', {
+    type: 'string',
+    default: '',
+    describe: 'Registry section'
+  });
+  yargs.positional('key', {
+    type: 'string',
+    default: '',
+    describe: 'Registry key'
+  });
+  yargs.positional('value', {
+    type: 'string',
+    default: '',
+    describe: 'Registry value'
+  });
+}, editRegFunc);
+
 // Handle commands
+async function editRegFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/registry/' + argv.section + '/' + argv.key,
+    body: { value: argv.value }
+  }
+
+  // send request
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function factoryResetFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/control/reboot',
+  }
+  requestOptions.body = { factory_reset: true };
+
+  // send request
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function setTimeFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let timezone = argv.timezone;
+  let date = argv.date;
+  let time = argv.time;
+  let applyTimezone = argv.applyTimezone;
+
+  const timeFormatRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
+  const dateFormatRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+  if (time != '' && !timeFormatRegex.test(time)) {
+    // time not entered correctly
+    console.log('Time not entered correctly, please enter in format hh:mm:ss');
+    return;
+  }
+  if (date != '' && !dateFormatRegex.test(date)) {
+    // date not entered correctly
+    console.log('Date not entered correctly, please enter in format YYYY-MM-DD');
+    return;
+  }
+  
+  // set the time on the player
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/time',
+  };
+  requestOptions.body = {
+    time: time + ' ' + timezone,
+    date: date,
+    applyTimezone: applyTimezone
+  };
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response);
+  }
+  catch (error) {
+    console.log(error);
+  }
+}
+
+async function getRegFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let section = argv.section;
+  let key = argv.key;
+  let requestOptions;
+
+  if (section == '') {
+    requestOptions = {
+      method: 'GET',
+      url: 'http://' + playerData[1] + '/api/v1/registry',
+    };
+  } else {
+    requestOptions = {
+      method: 'GET',
+      url: 'http://' + playerData[1] + '/api/v1/registry/' + section + '/' + key,
+    };
+  }
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response.data.result.value);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function setDWSFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let onOff = argv.onOff;
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
+    body: {enable: true},
+  };
+
+  if (onOff == 'on') {
+    requestOptions.body.enable = true;
+    //console.log('Turning DWS on');
+  } else if (onOff == 'off') {
+    requestOptions.body.enable = false;
+    //console.log('Turning DWS off');
+  } else {
+    console.log('Invalid on/off value');
+    return;
+  }
+  console.log(requestOptions);
+  try {
+    let response = await requestFetch(requestOptions);
+    if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
+      console.log('DWS turned on, player rebooting');
+    } else if (response.data.result.success && response.data.result.reboot && onOff == 'off') {
+      console.log('DWS turned off, player rebooting');
+    } else if (response.data.result.success && !response.data.result.reboot && onOff == 'on') {
+      console.log('DWS turned on');
+    } else if (response.data.result.success && !response.data.result.reboot && onOff == 'off') {
+      console.log('DWS turned off');
+    } else {
+      console.log('set DWS failed');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function checkDWSFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let requestOptions = {
+    method: 'GET',
+    url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
+  };
+
+  try {
+    let response = await requestFetch(requestOptions);
+    if (response.data.result.value) {
+      console.log('DWS is enabled')
+    } else {
+      console.log('DWS is disabled')
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getFilesFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let playerPath = argv.path;
+
+  let requestOptions = {
+    method: 'GET',
+    url: 'http://' + playerData[1] + '/api/v1/files/sd' + playerPath,
+  };
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response.data.result.files);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getTimeFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let requestOptions = {
+    method: 'GET',
+    url: 'http://' + playerData[1] + '/api/v1/time',
+  };
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response.data.result);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 async function deleteFileFunc(argv) {
   // get player data from argv
   let playerData = await pullData(argv);

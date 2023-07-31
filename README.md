@@ -2,7 +2,7 @@
 
 **NOTE**: the code in this branch assumes that there is no password set on the player. This is done for ease of development.
 
-**NOTE**: This branch also assumes an sd card on the player. In the future there will be a storage type option in players.json, however this is not implemented yet. 
+**NOTE**: This branch assumes an sd card on the player. In the future there will be a storage type option in players.json, however this is not implemented yet. 
 
 The purpose of this package is to allow users to communicate with the BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs through a simple CLI tool, `bsc`. 
 
@@ -21,6 +21,7 @@ You will need to create the players.json file. This can be done by deleting the 
 ```
 bsc addPlayer <playerName> <ipAddress> [username] [password]
 ```
+If you are going to use addPlayer or delPlayer, make sure to be in the directory that you cloned this repo to. This will not always be the case, but the way the path currently works this must be done. 
 
 **Make sure to install the CLI before using the above command to edit players.json.** [Install the CLI](#installing-npm-module-from-source)
 
@@ -52,15 +53,19 @@ bsc rmPlayer [playerName]
 | editPlayer | [] | Edit an already existing player's info |  |
 | getDI | [x] | Get device info in the form of a JSON object | bsc getDI \<playerName> | 
 | put | [x] | Put file/files on a player. Specify a single file or a directory of files and the upload location (optional) | bsc put \<playerName> \<File/Directory> [location] |
+| getFiles | [x] | get the files on the player's SD card or in a certain directory | bsc getFiles \<playerName> [path] |
 | reboot | [x] | Reboot the specified player | bsc reboot \<playerName> |
 | checkPW | [x] | Check if lDWS password is enabled | bsc checkPW \<playerName> |
 | screenshot | [x] | Take a screenshot | bsc screenshot \<playerName> |
 | delFile | [x] | Delete a file on the player | bsc delFile \<playerName> \<File> | 
-| setTime | [] | Set the player's time |  | 
-| getTime | [] | Get the player's time |  | 
-| toggleDWS | [] | Toggles DWS on/off |  | 
+| setTime | [x - broken] | Set the player's time | bsc setTime \<playerName> \<timezone> \<time> \<date> [applyTimezone] | 
+| getTime | [x] | Get the player's time | bsc getTime \<playerName> | 
+| checkDWS | [x] | Check if the DWS is enabled or not | bsc checkDWS \<playerName> | 
+| setDWS | [x - broken] | Toggles DWS on/off | bsc setDWS \<playerName> \<on/off> | 
 | getLogs | [x] | Gets logs from the player and puts them in a local file | bsc getLogs \<playerName> |
-| facReset | [] | Factory resets the player |  |
+| facReset | [x] | Factory resets the player | bsc facReset \<playerName> |
+| getReg | [x] | Gets the registry | bsc getReg \<playerName> [section] [key] |
+| editReg | [x - broken] | Edits certain sections of the registry | bsc editReg \<playerName> \<section> \<key> \<value> |
 
 
 ## Raw Requests:
