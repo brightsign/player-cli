@@ -12,8 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@mhoc/axios-digest-auth": "^0.8.0",
-    "axios": "^1.4.0",
     "node-fetch": "^2.6.12",
     "yargs": "^17.7.2"
   }
