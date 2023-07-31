@@ -130,7 +130,6 @@ yargs.command('screenshot <playerName>', 'Take a screenshot', (yargs) => {
 }, screenshotFunc);
 
 // Get logs
-/*
 yargs.command('getLogs <playerName>', 'Get logs', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
@@ -138,12 +137,10 @@ yargs.command('getLogs <playerName>', 'Get logs', (yargs) => {
     describe: 'Player name'
   });
 }, getLogsFunc);
-*/
+
 // Edit Registry
 
-
-// 
-
+// Raw command
 yargs.command('raw', 'allow for raw input', (yargs) => {
   yargs.option('i', { alias: 'targetIp', describe: 'IP Address of Target Player', type: 'string', demandOption: true });
   yargs.option('p', { alias: 'targetPassword', describe: 'Password of Target Player', type: 'string', demandOption: false });
@@ -153,7 +150,60 @@ yargs.command('raw', 'allow for raw input', (yargs) => {
   yargs.option('f', { alias: 'file', describe: 'Path to file to push if pushing file', type: 'string', demandOption: false })
 }, handleRawRequestFunc);
 
+// delete file
+yargs.command('delFile <playerName> <file>', 'Delete a file', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+  yargs.positional('file', {
+    type: 'string',
+    default: '',
+    describe: 'Path to file on player'
+  });
+}, deleteFileFunc);
+
 // Handle commands
+async function deleteFileFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[1] = playerUser, [2] = playerIP, [3] = playerPW
+  let playerPath = argv.file;
+
+  let requestOptions = {
+    method: 'DELETE',
+    url: 'http://' + playerData[2] + '/api/v1/files/' + playerPath,
+  }
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response);
+  }
+  catch (error) {
+    console.log(error);
+  }
+}
+
+async function getLogsFunc(argv) {
+  let playerUser = players[argv.playerName].username;
+  let playerIP = players[argv.playerName].ipAddress;
+  let playerPW = players[argv.playerName].password;
+
+  let requestOptions = {
+    method: 'GET',
+    url: 'http://' + playerIP + '/api/v1/logs',
+  };
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response.data.result);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
 async function handleRawRequestFunc(argv) {
   console.log('Handling Raw Request');
   let ipAddressRaw = argv.i;
@@ -186,15 +236,6 @@ async function handleRawRequestFunc(argv) {
   } else {
     console.log(response.data.result);
   }
-}
-
-async function getLogsFunc(argv) {
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
-
-
-
 }
 
 async function pushFunc(argv) {
@@ -472,6 +513,15 @@ async function screenshotFunc(argv) {
 }
 
 // General functions
+async function pullData(argv) {
+  let playerUser = players[argv.playerName].username;
+  let playerIP = players[argv.playerName].ipAddress;
+  let playerPW = players[argv.playerName].password;
+
+  let returnArr = [playerUser, playerIP, playerPW];
+  return returnArr;
+}
+
 async function requestFetch(requestOptions) {
   try {
     let response = await fetch(requestOptions.url, requestOptions);
