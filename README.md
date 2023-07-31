@@ -85,15 +85,15 @@ Install the tool [jq](https://stedolan.github.io/jq/download/) to prettify the J
 
 Parse the keys:
 ```bash
-bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq 'keys'
+bsc raw -a=true -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq 'keys'
 ```
 
 Prettify the entire response: 
 ```bash
-bsc -i=192.168.128.101 -p=XAE28N000058 -m=GET -r="/info" | jq '.data.result'
+bsc raw -a=true -i=192.168.128.101 -p=XAE28N000058 -m=GET -r="/info" | jq '.data.result'
 ```
 
 Parse the model from /info
 ```bash
-bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq '.data.result.model'
+bsc raw -a=true -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq '.data.result.model'
 ```
