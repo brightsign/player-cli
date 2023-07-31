@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 const yargs = require('yargs');
 const fs = require('fs');
-const fsp = require('fs').promises;
+const fsp = fs.promises;
 const formData = require('form-data');
 let currentPath = require('path'); // for absolute path
 const players = require('./players.json');
+<<<<<<< HEAD
 const axios = require('axios');
 const { get } = require('http');
 const AxiosDigestAuth = require('@mhoc/axios-digest-auth').default;
+=======
+const fetch = require('node-fetch');
+>>>>>>> e732d5b (fix: went over Ben's review and fixed items from comments)
 
 let axiosDigestAuthInst;
 
@@ -165,8 +169,19 @@ async function handleRawRequestFunc(argv) {
     url: 'http://' + ipAddressRaw + '/api/v1/' + requestRouteRaw,
   };
   
-  let response = await requestFetch(requestOptions);
-  
+  if (fileRaw != null) {
+    let form = new formData();
+    let fileToUpload = fs.createReadStream(fileRaw);
+    console.log('Uploading file: ', fileRaw);
+    form.append("file", fileToUpload, {filename: fileRaw});
+    requestOptions.body = form;
+  }
+
+  try {
+    let response = await requestFetch(requestOptions);
+  } catch (error) {
+    console.log(error);
+  }
   if(rawResponseRaw) {
     console.log(response);
   } else {
@@ -323,9 +338,6 @@ async function changePWFunc(argv) {
   } catch (err) {
     console.log(err);
   }
-
-  
-
 }
 
 async function checkPWFunc(argv) {
@@ -367,7 +379,6 @@ async function rebootFunc(argv) {
   } catch (err) {
     console.log(err);
   }
-
 }
 
 function addPlayerFunc(argv) {
@@ -440,8 +451,6 @@ async function getDeviceInfo(argv) {
   } catch (err) {
     console.log(err);
   }
-  
-
 }
 
 async function screenshotFunc(argv) {
@@ -496,7 +505,6 @@ async function checkDir(path) {
 }
 
 async function getFiles(path) {
-
   try {
     let filesArr = [];
     let files = await fsp.readdir(path);
@@ -512,7 +520,6 @@ async function getFiles(path) {
     console.error(err);
     throw err;
   }
-
 }
 
 // parse the command line arguments
