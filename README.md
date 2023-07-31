@@ -21,6 +21,7 @@ You will need to create the players.json file. This can be done by deleting the 
 ```
 bsc addPlayer <playerName> <ipAddress> [username] [password]
 ```
+If you are going to use addPlayer or delPlayer, make sure to be in the directory that you cloned this repo to. This will not always be the case, but the way the path currently works this must be done. 
 
 **Make sure to install the CLI before using the above command to edit players.json.** [Install the CLI](#installing-npm-module-from-source)
 
