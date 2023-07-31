@@ -22,7 +22,7 @@ You will need to create the players.json file. This can be done by deleting the 
 bsc addPlayer <playerName> <ipAddress> [username] [password]
 ```
 
-**Make sure to install the CLI before using the above command to edit players.json.**
+**Make sure to install the CLI before using the above command to edit players.json.** [Install the CLI](#installing-npm-module-from-source)
 
 ## Installing NPM Module from source
 
@@ -60,6 +60,8 @@ bsc rmPlayer [playerName]
 | getLogs | [] | Gets logs from the player and puts them in a local file |  |
 | facReset | [] | Factory resets the player |  |
 
+
+## Raw Requests:
 bsc also supports raw API requests:
 ```
 bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawResponse]
@@ -72,4 +74,25 @@ bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"
 Push a file with raw command:
 ```
 bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=PUT -r="files/sd" -f="PATH"
+```
+
+### Formatting Responses
+
+Install the tool [jq](https://stedolan.github.io/jq/download/) to prettify the JSON response structures.
+
+#### jq examples
+
+Parse the keys:
+```bash
+bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq 'keys'
+```
+
+Prettify the entire response: 
+```bash
+bsc -i=192.168.128.101 -p=XAE28N000058 -m=GET -r="/info" | jq '.data.result'
+```
+
+Parse the model from /info
+```bash
+bsc -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq '.data.result.model'
 ```
