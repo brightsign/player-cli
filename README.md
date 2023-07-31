@@ -66,8 +66,10 @@ bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawRe
 ```
 For example:
 ```
-bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"'
-bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"'
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"
 ```
-
-Please note that raw API calls does not yet support putting files on the player.
+Push a file with raw command:
+```
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=PUT -r="files/sd" -f="PATH"
+```
