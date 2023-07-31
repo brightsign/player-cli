@@ -164,17 +164,17 @@ yargs.command('delFile <playerName> <file>', 'Delete a file', (yargs) => {
 async function deleteFileFunc(argv) {
   // get player data from argv
   let playerData = await pullData(argv);
-  // playerData[1] = playerUser, [2] = playerIP, [3] = playerPW
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
   let playerPath = argv.file;
 
   let requestOptions = {
     method: 'DELETE',
-    url: 'http://' + playerData[2] + '/api/v1/files/' + playerPath,
+    url: 'http://' + playerData[1] + '/api/v1/files/sd/' + playerPath,
   }
 
   try {
     let response = await requestFetch(requestOptions);
-    console.log(response);
+    console.log(playerPath + ' deleted: ' + response.data.result.success);
   }
   catch (error) {
     console.log(error);
