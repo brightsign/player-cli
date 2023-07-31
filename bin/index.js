@@ -5,13 +5,7 @@ const fsp = fs.promises;
 const formData = require('form-data');
 let currentPath = require('path'); // for absolute path
 const players = require('./players.json');
-<<<<<<< HEAD
-const axios = require('axios');
-const { get } = require('http');
-const AxiosDigestAuth = require('@mhoc/axios-digest-auth').default;
-=======
 const fetch = require('node-fetch');
->>>>>>> e732d5b (fix: went over Ben's review and fixed items from comments)
 
 let axiosDigestAuthInst;
 
