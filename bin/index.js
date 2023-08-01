@@ -526,9 +526,13 @@ async function deleteFileFunc(argv) {
 }
 
 async function getLogsFunc(argv) {
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'GET',
@@ -579,10 +583,13 @@ async function handleRawRequestFunc(argv) {
 }
 
 async function pushFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
 
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'PUT',
@@ -668,10 +675,13 @@ async function pushFunc(argv) {
 }
 
 async function changePWFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
 
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'PUT',
@@ -720,9 +730,13 @@ async function changePWFunc(argv) {
 
 async function checkPWFunc(argv) {
   
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'GET',
@@ -742,9 +756,13 @@ async function checkPWFunc(argv) {
 
 async function rebootFunc(argv) {
 
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'PUT',
@@ -816,9 +834,13 @@ function removePlayerFunc(argv) {
 
 async function getDeviceInfo(argv) {
 
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'GET',
@@ -834,9 +856,13 @@ async function getDeviceInfo(argv) {
 
 async function screenshotFunc(argv) {
 
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'POST',
