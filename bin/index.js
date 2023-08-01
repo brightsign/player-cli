@@ -14,6 +14,7 @@ const formData = require('form-data');
 let currentPath = require('path'); // for absolute path
 const players = require('./players.json');
 const fetch = require('node-fetch');
+const os = require('os');
 
 
 // set up commands
@@ -229,7 +230,151 @@ yargs.command('getReg <playerName> [section] [key]', 'Get registry values', (yar
   });
 },getRegFunc);
 
+// set time
+yargs.command('setTime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+  yargs.positional('timezone', {
+    type: 'string',
+    default: 'America/New_York',
+    describe: 'Timezone'
+  });
+  yargs.positional('time', {
+    type: 'string',
+    default: '',
+    describe: 'Time, hh:mm:ss'
+  });
+  yargs.positional('date', {
+    type: 'string',
+    default: '',
+    describe: 'Date, YYYY-MM-DD'
+  });
+  yargs.positional('applyTimezone', {
+    type: 'boolean',
+    default: true,
+    describe: 'Apply timezone to time'
+  });
+}, setTimeFunc);
+
+// Factory reset
+yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+}, factoryResetFunc);
+
+// edit registry
+yargs.command('editReg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+  yargs.positional('section', {
+    type: 'string',
+    default: '',
+    describe: 'Registry section'
+  });
+  yargs.positional('key', {
+    type: 'string',
+    default: '',
+    describe: 'Registry key'
+  });
+  yargs.positional('value', {
+    type: 'string',
+    default: '',
+    describe: 'Registry value'
+  });
+}, editRegFunc);
+
 // Handle commands
+async function editRegFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/registry/' + argv.section + '/' + argv.key,
+    body: { value: argv.value }
+  }
+
+  // send request
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function factoryResetFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/control/reboot',
+  }
+  requestOptions.body = { factory_reset: true };
+
+  // send request
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function setTimeFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let timezone = argv.timezone;
+  let date = argv.date;
+  let time = argv.time;
+  let applyTimezone = argv.applyTimezone;
+
+  const timeFormatRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
+  const dateFormatRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+  if (time != '' && !timeFormatRegex.test(time)) {
+    // time not entered correctly
+    console.log('Time not entered correctly, please enter in format hh:mm:ss');
+    return;
+  }
+  if (date != '' && !dateFormatRegex.test(date)) {
+    // date not entered correctly
+    console.log('Date not entered correctly, please enter in format YYYY-MM-DD');
+    return;
+  }
+  
+  // set the time on the player
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/time',
+  };
+  requestOptions.body = {
+    time: time + ' ' + timezone,
+    date: date,
+    applyTimezone: applyTimezone
+  };
+
+  try {
+    let response = await requestFetch(requestOptions);
+    console.log(response);
+  }
+  catch (error) {
+    console.log(error);
+  }
+}
+
 async function getRegFunc(argv) {
   // get player data from argv
   let playerData = await pullData(argv);
@@ -267,7 +412,7 @@ async function setDWSFunc(argv) {
   let requestOptions = {
     method: 'PUT',
     url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
-    body: {"enable": true},
+    body: {enable: true},
   };
 
   if (onOff == 'on') {

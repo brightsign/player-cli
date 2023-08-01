@@ -57,14 +57,14 @@ bsc rmPlayer [playerName]
 | checkPW | [x] | Check if lDWS password is enabled | bsc checkPW \<playerName> |
 | screenshot | [x] | Take a screenshot | bsc screenshot \<playerName> |
 | delFile | [x] | Delete a file on the player | bsc delFile \<playerName> \<File> | 
-| setTime | [] | Set the player's time |  | 
+| setTime | [x - broken] | Set the player's time | bsc setTime \<playerName> \<timezone> \<time> \<date> [applyTimezone] | 
 | getTime | [x] | Get the player's time | bsc getTime \<playerName> | 
 | checkDWS | [x] | Check if the DWS is enabled or not | bsc checkDWS \<playerName> | 
-| setDWS | [] | Toggles DWS on/off | bsc setDWS \<playerName> \<on/off> | 
+| setDWS | [x - broken] | Toggles DWS on/off | bsc setDWS \<playerName> \<on/off> | 
 | getLogs | [x] | Gets logs from the player and puts them in a local file | bsc getLogs \<playerName> |
-| facReset | [] | Factory resets the player |  |
+| facReset | [x] | Factory resets the player | bsc facReset \<playerName> |
 | getReg | [x] | Gets the registry | bsc getReg \<playerName> [section] [key] |
-| editReg | [] | Edits certain sections of the registry |  |
+| editReg | [x - broken] | Edits certain sections of the registry | bsc editReg \<playerName> \<section> \<key> \<value> |
 
 
 ## Raw Requests:
