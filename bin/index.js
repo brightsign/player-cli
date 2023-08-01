@@ -14,6 +14,7 @@ let currentPath = require('path'); // for absolute path
 const fetch = require('node-fetch');
 const os = require('os');
 const readline = require('readline');
+const fetchDigest = require('digest-fetch');
 
 // Create player object on download
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
@@ -308,7 +309,7 @@ async function editRegFunc(argv) {
 
   // send request
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response);
   } catch (err) {
     console.log(err);
@@ -328,7 +329,7 @@ async function factoryResetFunc(argv) {
 
   // send request
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response);
   } catch (err) {
     console.log(err);
@@ -398,7 +399,7 @@ async function getRegFunc(argv) {
   }
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response.data.result.value);
   } catch (error) {
     console.log(error);
@@ -429,7 +430,7 @@ async function setDWSFunc(argv) {
   }
   console.log(requestOptions);
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
       console.log('DWS turned on, player rebooting');
     } else if (response.data.result.success && response.data.result.reboot && onOff == 'off') {
@@ -457,7 +458,7 @@ async function checkDWSFunc(argv) {
   };
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     if (response.data.result.value) {
       console.log('DWS is enabled')
     } else {
@@ -480,7 +481,7 @@ async function getFilesFunc(argv) {
   };
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response.data.result.files);
   } catch (error) {
     console.log(error);
@@ -498,7 +499,7 @@ async function getTimeFunc(argv) {
   };
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response.data.result);
   } catch (error) {
     console.log(error);
@@ -517,7 +518,7 @@ async function deleteFileFunc(argv) {
   }
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(playerPath + ' deleted: ' + response.data.result.success);
   }
   catch (error) {
@@ -540,7 +541,7 @@ async function getLogsFunc(argv) {
   };
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response.data.result);
   } catch (error) {
     console.log(error);
@@ -571,7 +572,7 @@ async function handleRawRequestFunc(argv) {
   }
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, 'admin', targetPasswordRaw);
   } catch (error) {
     console.log(error);
   }
@@ -641,7 +642,7 @@ async function pushFunc(argv) {
     //console.log(requestOptions); 
 
     try {
-      let response = await requestFetch(requestOptions);
+      let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
       //console.log(response);
       console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
       //console.log(response.data.result.results)
@@ -665,7 +666,7 @@ async function pushFunc(argv) {
       console.log('Pushing ' + files[i]);
 
       try {
-        let response = await requestFetch(requestOptions);
+        let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
       } catch (err) {
         console.log(err);
@@ -693,7 +694,7 @@ async function changePWFunc(argv) {
   };
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log('Password changed (player side): ' + response.data.result.success);
     //console.log(response);
 
@@ -744,7 +745,7 @@ async function checkPWFunc(argv) {
   };
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     //console.log(response);
     //console.log(response.data.result.password);
     //console.log('Player has password set: ' + response.data.result.password.);
@@ -770,7 +771,7 @@ async function rebootFunc(argv) {
   };
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     //console.log(response);
     console.log('Player rebooted: ' + response.data.result.success);
   } catch (err) {
@@ -847,7 +848,7 @@ async function getDeviceInfo(argv) {
     url: 'http://' + playerIP + '/api/v1/info',
   };
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response);
   } catch (err) {
     console.log(err);
@@ -870,7 +871,7 @@ async function screenshotFunc(argv) {
   };
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     //console.log(response);
     console.log('Screenshot taken! Location: ' + response.data.result.filename);
   } catch (err) {
@@ -923,14 +924,27 @@ async function pullData(argv) {
   return returnArr;
 }
 
-async function requestFetch(requestOptions) {
-  try {
-    let response = await fetch(requestOptions.url, requestOptions);
-    let resData = await response.json();
-    return resData;
-  } catch (err) {
-    console.error(err);
-    throw err;
+async function requestFetch(requestOptions, user, pass) {
+  
+  if (pass !== "") {
+    let digestClient = new fetchDigest(user, pass);
+    try {  
+      let response = await digestClient.fetch(requestOptions.url, requestOptions);
+      let resData = await response.json();
+      return resData;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  } else {
+    try {
+      let response = await fetch(requestOptions.url, requestOptions);
+      let resData = await response.json();
+      return resData;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
 }
 
