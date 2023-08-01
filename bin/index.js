@@ -1,14 +1,23 @@
 #!/usr/bin/env node
+
+// The version of code stored in this branch explicitly assumes that the player 
+// does NOT have a lDWS password set. Using this CLI with a player that has a
+// lDWS password set will NOT WORK
+
+
 const yargs = require('yargs');
 const fs = require('fs');
 const fsp = fs.promises;
 const formData = require('form-data');
 let currentPath = require('path'); // for absolute path
-const players = require('./players.json');
+//const players = require('./players.json');
 const fetch = require('node-fetch');
 const os = require('os');
+const readline = require('readline');
 
-let axiosDigestAuthInst;
+// Create player object on download
+const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
+const players = require(CONFIG_FILE_PATH);
 
 // set up commands
 yargs.scriptName('bsc')
@@ -520,9 +529,13 @@ async function deleteFileFunc(argv) {
 }
 
 async function getLogsFunc(argv) {
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'GET',
@@ -572,10 +585,13 @@ async function handleRawRequestFunc(argv) {
 }
 
 async function pushFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
 
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'PUT',
@@ -663,10 +679,13 @@ async function pushFunc(argv) {
 }
 
 async function changePWFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
 
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'PUT',
@@ -683,7 +702,7 @@ async function changePWFunc(argv) {
     //console.log(response);
 
     // update password in players.json
-    fs.readFile('./bin/players.json', 'utf8', (error, data) => {
+    fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
       if (error) {
         console.error('Error reading file: ', error);
         return;
@@ -699,7 +718,7 @@ async function changePWFunc(argv) {
 
       // write new json object to file
       let modifiedData = JSON.stringify(JSONdata, null, 2);
-      fs.writeFile('./bin/players.json', modifiedData, 'utf8', (error) => {
+      fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
         if (error) {
           console.error('Error writing file: ', error);
           return;
@@ -715,9 +734,13 @@ async function changePWFunc(argv) {
 
 async function checkPWFunc(argv) {
   
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'GET',
@@ -737,8 +760,13 @@ async function checkPWFunc(argv) {
 
 async function rebootFunc(argv) {
 
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'PUT',
@@ -755,7 +783,7 @@ async function rebootFunc(argv) {
 }
 
 function addPlayerFunc(argv) {
-  fs.readFile('./bin/players.json', 'utf8', (error, data) => {
+  fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
     if (error) {
       console.error('Error reading file: ', error);
       return;
@@ -773,7 +801,7 @@ function addPlayerFunc(argv) {
 
     // write new json object to file
     let modifiedData = JSON.stringify(JSONdata, null, 2);
-    fs.writeFile('./bin/players.json', modifiedData, 'utf8', (error) => {
+    fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
       if (error) {
         console.error('Error writing file: ', error);
         return;
@@ -784,7 +812,7 @@ function addPlayerFunc(argv) {
 }
 
 function removePlayerFunc(argv) {
-  fs.readFile('./bin/players.json', 'utf8', (error, data) => {
+  fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
     if (error) {
       console.error('Error reading file: ', error);
       return;
@@ -798,7 +826,7 @@ function removePlayerFunc(argv) {
 
     // write new json object to file
     let modifiedData = JSON.stringify(JSONdata, null, 2);
-    fs.writeFile('./bin/players.json', modifiedData, 'utf8', (error) => {
+    fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
       if (error) {
         console.error('Error writing file: ', error);
         return;
@@ -810,9 +838,13 @@ function removePlayerFunc(argv) {
 
 async function getDeviceInfo(argv) {
 
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'GET',
@@ -828,9 +860,13 @@ async function getDeviceInfo(argv) {
 
 async function screenshotFunc(argv) {
 
-  let playerUser = players[argv.playerName].username;
-  let playerIP = players[argv.playerName].ipAddress;
-  let playerPW = players[argv.playerName].password;
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  let playerUser = playerData[0];
+  let playerIP = playerData[1];
+  let playerPW = playerData[2];
 
   let requestOptions = {
     method: 'POST',
@@ -847,6 +883,41 @@ async function screenshotFunc(argv) {
 }
 
 // General functions
+function generatePlayersJson() {
+  if (fs.existsSync(CONFIG_FILE_PATH)) {
+    //console.log('Players config file already exists');
+    return;
+  }
+
+  let playersDefault = {};
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question('Enter player name: ', (playerName) => {
+    playersDefault[playerName] = {};
+    rl.question('Enter player IP address: ', (ipAddress) => {
+      playersDefault[playerName].ipAddress = ipAddress;
+      rl.question('Enter player username: ', (username) => {
+        playersDefault[playerName].username = username;
+        rl.question('Enter player password: ', (password) => {
+          playersDefault[playerName].password = password;
+          rl.close();
+          let playersDefaultString = JSON.stringify(playersDefault, null, 2);
+
+          fs.mkdirSync(currentPath.join(os.homedir(), '.bsc'), { recursive: true });
+
+          fs.writeFileSync(CONFIG_FILE_PATH, playersDefaultString, (err) => {
+            if (err) throw err;
+            console.log('Players config file created');
+          });
+        });
+      });
+    });
+  });
+}
+
 async function pullData(argv) {
   let playerUser = players[argv.playerName].username;
   let playerIP = players[argv.playerName].ipAddress;
@@ -904,6 +975,11 @@ async function getFiles(path) {
   }
 }
 
+function main() {
+  generatePlayersJson();
+}
+
 // parse the command line arguments
 //yargs.parse();
+main();
 yargs.argv;
