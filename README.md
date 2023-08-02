@@ -15,16 +15,6 @@ npm i
 Latest Local DWS REST API Documentation as of July 20, 2023.
 [Local DWS APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs)
 
-## Create players.json
-
-You will need to create the players.json file. This can be done by deleting the '.example' from the end of the file in cli-src, or by creating a new players.json file in the same folder. Once this file is created, and the module is installed, you can populate this object yourself, or use the command line:
-```
-bsc addPlayer <playerName> <ipAddress> [username] [password]
-```
-If you are going to use addPlayer or delPlayer, make sure to be in the directory that you cloned this repo to. This will not always be the case, but the way the path currently works this must be done. 
-
-**Make sure to install the CLI before using the above command to edit players.json.** [Install the CLI](#installing-npm-module-from-source)
-
 ## Installing NPM Module from source
 
 The following will need to be run to build the npm module. `bsc` will be built and ready to use. 
@@ -33,6 +23,9 @@ The following will need to be run to build the npm module. `bsc` will be built a
 npm -g install
 ```
 
+When you first try and use a command, if you have not configured the CLI for at least one player, you will be prompted to do so. Simply enter the name you want to give to your player, the ip address, and the username and the password of the player. Remember that by default, the player's username is 'admin' and the password is the serial number. 
+
+**Note** to use file upload, the password must not be set on the player. You can easily turn off the password from the lDWS front end. 
 
 ## Usage
 
