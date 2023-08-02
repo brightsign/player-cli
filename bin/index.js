@@ -679,7 +679,7 @@ async function getDeviceInfo(argv) {
   };
   try {
     let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-    return response;
+    console.log(response);
   } catch (err) {
     console.log(err);
   }
