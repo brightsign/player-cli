@@ -18,7 +18,7 @@ const fetchDigest = require('digest-fetch');
 
 // Create player object on download
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
-const players = require(CONFIG_FILE_PATH);
+//const players = require(CONFIG_FILE_PATH);
 
 // set up commands
 yargs.scriptName('bsc')
@@ -746,6 +746,9 @@ function generatePlayersJson() {
 }
 
 async function pullData(argv) {
+
+  const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
+
   let playerUser = players[argv.playerName].username;
   let playerIP = players[argv.playerName].ipAddress;
   let playerPW = players[argv.playerName].password;
