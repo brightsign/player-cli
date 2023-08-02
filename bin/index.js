@@ -111,7 +111,7 @@ yargs.command('checkPW <playerName>', 'Check if player has a lDWS password', (ya
 }, checkPWFunc);
 
 // Change player lDWS password
-yargs.command('changePW <playerName> [newPassword]', 'Change player lDWS password, enter "" for no password', (yargs) => {
+yargs.command('setPW <playerName> [newPassword]', 'Change player lDWS password, enter "" for no password', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -272,7 +272,7 @@ yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
 }, factoryResetFunc);
 
 // edit registry
-yargs.command('editReg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {
+yargs.command('setReg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -362,15 +362,22 @@ async function setTimeFunc(argv) {
   let requestOptions = {
     method: 'PUT',
     url: 'http://' + playerData[1] + '/api/v1/time',
+    header: { 'Content-Type': 'application/json' },
     body: {
+      /*
       time: setTime + ' ' + timezone,
       date: setDate,
       applyTimezone: applyTimezoneBool
+      */
+
+      "time": "01:34:00 PDT",
+      "date": "2003-03-23",
+      "applyTimezone": true
     }
   }
 
   try {
-    let response = await requestFetch(requestOptions);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response);
   }
   catch (error) {
@@ -744,7 +751,7 @@ async function checkPWFunc(argv) {
   };
 
   try {
-    let response = await requestFetch(requestOptions, playerUser, playerPW);
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     //console.log(response);
     //console.log(response.data.result.password);
     //console.log('Player has password set: ' + response.data.result.password.);
@@ -926,6 +933,7 @@ async function pullData(argv) {
 async function requestFetch(requestOptions, user, pass) {
   
   if (pass !== "") {
+    console.log('Password set, using digest auth')
     let digestClient = new fetchDigest(user, pass);
     try {  
       let response = await digestClient.fetch(requestOptions.url, requestOptions);
@@ -936,6 +944,7 @@ async function requestFetch(requestOptions, user, pass) {
       throw err;
     }
   } else {
+    console.log('No password set, using no auth')
     try {
       let response = await fetch(requestOptions.url, requestOptions);
       let resData = await response.json();
