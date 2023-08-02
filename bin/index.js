@@ -18,7 +18,7 @@ const fetchDigest = require('digest-fetch');
 
 // Create player object on download
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
-//const players = require(CONFIG_FILE_PATH);
+let players;
 
 // set up commands
 yargs.scriptName('bsc')
@@ -381,9 +381,9 @@ async function getLogsFunc(argv) {
 
 
 async function handleRawRequestFunc(argv) {
-  console.log('Handling Raw Request');
+  // console.log('Handling Raw Request');
   let ipAddressRaw = argv.i;
-  let targetPasswordRaw = argv.p;
+  let targetPasswordRaw = argv.p ? argv.p : '';
   let requestMethodRaw = argv.m;
   let requestRouteRaw = argv.r;
   let rawResponseRaw = argv.a;
@@ -397,20 +397,20 @@ async function handleRawRequestFunc(argv) {
   if (fileRaw != null) {
     let form = new formData();
     let fileToUpload = fs.createReadStream(fileRaw);
-    console.log('Uploading file: ', fileRaw);
+    // console.log('Uploading file: ', fileRaw);
     form.append("file", fileToUpload, {filename: fileRaw});
     requestOptions.body = form;
   }
 
   try {
     let response = await requestFetch(requestOptions, 'admin', targetPasswordRaw);
+    if(rawResponseRaw) {
+      console.log(JSON.stringify(response));
+    } else {
+      console.log(response.data.result);
+    }
   } catch (error) {
     console.log(error);
-  }
-  if(rawResponseRaw) {
-    console.log(response);
-  } else {
-    console.log(response.data.result);
   }
 }
 
@@ -679,7 +679,7 @@ async function getDeviceInfo(argv) {
   };
   try {
     let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-    console.log(response);
+    return response;
   } catch (err) {
     console.log(err);
   }
@@ -713,6 +713,7 @@ async function screenshotFunc(argv) {
 function generatePlayersJson() {
   if (fs.existsSync(CONFIG_FILE_PATH)) {
     //console.log('Players config file already exists');
+    players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
     return;
   }
 
@@ -738,6 +739,7 @@ function generatePlayersJson() {
           fs.writeFileSync(CONFIG_FILE_PATH, playersDefaultString, (err) => {
             if (err) throw err;
             console.log('Players config file created');
+            players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
           });
         });
       });
@@ -746,9 +748,6 @@ function generatePlayersJson() {
 }
 
 async function pullData(argv) {
-
-  const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
-
   let playerUser = players[argv.playerName].username;
   let playerIP = players[argv.playerName].ipAddress;
   let playerPW = players[argv.playerName].password;
@@ -760,7 +759,7 @@ async function pullData(argv) {
 async function requestFetch(requestOptions, user, pass) {
   
   if (pass !== "") {
-    console.log('Password set, using digest auth')
+    // console.log('Password set, using digest auth')
     let digestClient = new fetchDigest(user, pass);
     try {  
       let response = await digestClient.fetch(requestOptions.url, requestOptions);
@@ -771,7 +770,7 @@ async function requestFetch(requestOptions, user, pass) {
       throw err;
     }
   } else {
-    console.log('No password set, using no auth')
+    // console.log('No password set, using no auth')
     try {
       let response = await fetch(requestOptions.url, requestOptions);
       let resData = await response.json();
