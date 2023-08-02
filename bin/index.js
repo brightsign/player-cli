@@ -200,20 +200,6 @@ yargs.command('checkDWS <playerName>', 'Check if player has a DWS password', (ya
   });
 }, checkDWSFunc);
 
-// set DWS
-yargs.command('setDWS <playerName> <onOff>', 'set DWS on/off', (yargs) => {
-  yargs.positional('playerName', {
-    type: 'string',
-    default: 'player1',
-    describe: 'Player name'
-  });
-  yargs.positional('onOff', {
-    type: 'string',
-    default: 'on',
-    describe: 'Turn DWS on or off'
-  });
-}, setDWSFunc);
-
 // get registry
 yargs.command('getReg <playerName> [section] [key]', 'Get registry values', (yargs) => {
   yargs.positional('playerName', {
@@ -233,35 +219,6 @@ yargs.command('getReg <playerName> [section] [key]', 'Get registry values', (yar
   });
 },getRegFunc);
 
-// set time
-yargs.command('setTime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {
-  yargs.positional('playerName', {
-    type: 'string',
-    default: 'player1',
-    describe: 'player name'
-  });
-  yargs.positional('timezone', {
-    type: 'string',
-    default: 'America/New_York',
-    describe: 'Timezone'
-  });
-  yargs.positional('time', {
-    type: 'string',
-    default: '',
-    describe: 'Time, hh:mm:ss'
-  });
-  yargs.positional('date', {
-    type: 'string',
-    default: '',
-    describe: 'Date, YYYY-MM-DD'
-  });
-  yargs.positional('applyTimezone', {
-    type: 'boolean',
-    default: true,
-    describe: 'Apply timezone to time'
-  });
-}, setTimeFunc);
-
 // Factory reset
 yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
   yargs.positional('playerName', {
@@ -271,51 +228,8 @@ yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
   });
 }, factoryResetFunc);
 
-// edit registry
-yargs.command('setReg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {
-  yargs.positional('playerName', {
-    type: 'string',
-    default: 'player1',
-    describe: 'player name'
-  });
-  yargs.positional('section', {
-    type: 'string',
-    default: '',
-    describe: 'Registry section'
-  });
-  yargs.positional('key', {
-    type: 'string',
-    default: '',
-    describe: 'Registry key'
-  });
-  yargs.positional('value', {
-    type: 'string',
-    default: '',
-    describe: 'Registry value'
-  });
-}, editRegFunc);
 
 // Handle commands
-async function editRegFunc(argv) {
-  // get player data from argv
-  let playerData = await pullData(argv);
-  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-  let requestOptions = {
-    method: 'PUT',
-    url: 'http://' + playerData[1] + '/api/v1/registry/' + argv.section + '/' + argv.key,
-    body: { value: argv.value }
-  }
-
-  // send request
-  try {
-    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-    console.log(response);
-  } catch (err) {
-    console.log(err);
-  }
-}
-
 async function factoryResetFunc(argv) {
   // get player data from argv
   let playerData = await pullData(argv);
@@ -333,55 +247,6 @@ async function factoryResetFunc(argv) {
     console.log(response);
   } catch (err) {
     console.log(err);
-  }
-}
-
-async function setTimeFunc(argv) {
-  // get player data from argv
-  let playerData = await pullData(argv);
-  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-  let timezone = argv.timezone;
-  let setDate = argv.date;
-  let setTime = argv.time;
-  let applyTimezoneBool = argv.applyTimezone;
-
-  const timeFormatRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
-  const dateFormatRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
-  if (setTime != '' && !timeFormatRegex.test(setTime)) {
-    // time not entered correctly
-    console.log('Time not entered correctly, please enter in format hh:mm:ss');
-    return;
-  }
-  if (setDate != '' && !dateFormatRegex.test(setDate)) {
-    // date not entered correctly
-    console.log('Date not entered correctly, please enter in format YYYY-MM-DD');
-    return;
-  }
-  
-  // set the time on the player
-  let requestOptions = {
-    method: 'PUT',
-    url: 'http://' + playerData[1] + '/api/v1/time',
-    header: { 'Content-Type': 'application/json' },
-    body: {
-      /*
-      time: setTime + ' ' + timezone,
-      date: setDate,
-      applyTimezone: applyTimezoneBool
-      */
-
-      "time": "01:34:00 PDT",
-      "date": "2003-03-23",
-      "applyTimezone": true
-    }
-  }
-
-  try {
-    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-    console.log(response);
-  }
-  catch (error) {
-    console.log(error);
   }
 }
 
@@ -408,47 +273,6 @@ async function getRegFunc(argv) {
   try {
     let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response.data.result.value);
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-async function setDWSFunc(argv) {
-  // get player data from argv
-  let playerData = await pullData(argv);
-  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-  let onOff = argv.onOff;
-
-  let requestOptions = {
-    method: 'PUT',
-    url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
-    body: {enable: true},
-  };
-
-  if (onOff == 'on') {
-    requestOptions.body.enable = true;
-    //console.log('Turning DWS on');
-  } else if (onOff == 'off') {
-    requestOptions.body.enable = false;
-    //console.log('Turning DWS off');
-  } else {
-    console.log('Invalid on/off value');
-    return;
-  }
-  console.log(requestOptions);
-  try {
-    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-    if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
-      console.log('DWS turned on, player rebooting');
-    } else if (response.data.result.success && response.data.result.reboot && onOff == 'off') {
-      console.log('DWS turned off, player rebooting');
-    } else if (response.data.result.success && !response.data.result.reboot && onOff == 'on') {
-      console.log('DWS turned on');
-    } else if (response.data.result.success && !response.data.result.reboot && onOff == 'off') {
-      console.log('DWS turned off');
-    } else {
-      console.log('set DWS failed');
-    }
   } catch (error) {
     console.log(error);
   }
