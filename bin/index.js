@@ -73,25 +73,6 @@ yargs.command('rmPlayer <playerName>', 'remove a player', (yargs) => {
   });
 }, removePlayerFunc);
 
-// Push a file or files to a player (file or directory)
-yargs.command('putFile <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {
-  yargs.positional('playerName', {
-    type: 'string',
-    default: 'player1',
-    describe: 'Player name'
-  });
-  yargs.positional('FileDirectory', {
-    type: 'string',
-    default: '',
-    describe: 'File or directory to put'
-  });
-  yargs.positional('location', {
-    type: 'string',
-    default: '',
-    describe: 'Location to push to (on player)'
-  });
-}, pushFunc);
-
 // Reboot a player
 yargs.command('reboot <playerName>', 'Reboot a player', (yargs) => {
   yargs.positional('playerName', {
@@ -144,15 +125,38 @@ yargs.command('getLogs <playerName>', 'Get logs', (yargs) => {
 
 // Edit Registry
 
-// Raw command
-yargs.command('raw', 'allow for raw input', (yargs) => {
-  yargs.option('i', { alias: 'targetIp', describe: 'IP Address of Target Player', type: 'string', demandOption: true });
-  yargs.option('p', { alias: 'targetPassword', describe: 'Password of Target Player', type: 'string', demandOption: false });
-  yargs.option('m', { alias: 'reqMethod', describe: 'Request method type', type: 'string', demandOption: true });
-  yargs.option('r', { alias: 'reqRoutes', describe: 'Request url route', type: 'string', demandOption: true });
-  yargs.option('a', { alias: 'rawResponse', describe: 'Raw HTTP REST Response', type: 'boolean', demandOption: false });
-  yargs.option('f', { alias: 'file', describe: 'Path to file to push if pushing file', type: 'string', demandOption: false })
-}, handleRawRequestFunc);
+// getFiles
+yargs.command('getFiles <playerName> [path]', 'Get files on player', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+  yargs.positional('path', {
+    type: 'string',
+    default: '',
+    describe: 'Path to get files from'
+  });
+}, getFilesFunc);
+
+// Push a file or files to a player (file or directory)
+yargs.command('putFile <playerName> <source> [destination]', 'Put files on a player', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+  yargs.positional('source', {
+    type: 'string',
+    default: '',
+    describe: 'File or directory to put'
+  });
+  yargs.positional('destination', {
+    type: 'string',
+    default: '',
+    describe: 'Destination to push to (on player)'
+  });
+}, pushFunc);
 
 // delete file
 yargs.command('delFile <playerName> <file>', 'Delete a file', (yargs) => {
@@ -176,20 +180,6 @@ yargs.command('getTime <playerName>', 'Get player time', (yargs) => {
     describe: 'Player name'
   });
 }, getTimeFunc);
-
-// getFiles
-yargs.command('getFiles <playerName> [path]', 'Get files on player', (yargs) => {
-  yargs.positional('playerName', {
-    type: 'string',
-    default: 'player1',
-    describe: 'Player name'
-  });
-  yargs.positional('path', {
-    type: 'string',
-    default: '',
-    describe: 'Path to get files from'
-  });
-}, getFilesFunc);
 
 // check DWS
 yargs.command('checkDWS <playerName>', 'Check if player has a DWS password', (yargs) => {
@@ -228,6 +218,15 @@ yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
   });
 }, factoryResetFunc);
 
+// Raw command
+yargs.command('raw', 'allow for raw input', (yargs) => {
+  yargs.option('i', { alias: 'targetIp', describe: 'IP Address of Target Player', type: 'string', demandOption: true });
+  yargs.option('p', { alias: 'targetPassword', describe: 'Password of Target Player', type: 'string', demandOption: false });
+  yargs.option('m', { alias: 'reqMethod', describe: 'Request method type', type: 'string', demandOption: true });
+  yargs.option('r', { alias: 'reqRoutes', describe: 'Request url route', type: 'string', demandOption: true });
+  yargs.option('a', { alias: 'rawResponse', describe: 'Raw HTTP REST Response', type: 'boolean', demandOption: false });
+  yargs.option('f', { alias: 'file', describe: 'Path to file to push if pushing file', type: 'string', demandOption: false })
+}, handleRawRequestFunc);
 
 // Handle commands
 async function factoryResetFunc(argv) {
@@ -426,11 +425,11 @@ async function pushFunc(argv) {
   
   let requestOptions = {
     method: 'PUT',
-    url: 'http://' + playerIP + '/api/v1/files/sd/' + argv.location,
+    url: 'http://' + playerIP + '/api/v1/files/sd/' + argv.destination,
   };
 
   // check if file or directory
-  let path = argv.FileDirectory;
+  let path = argv.source;
   let absPath = currentPath.resolve(path);
   let isFile;
 
@@ -460,7 +459,7 @@ async function pushFunc(argv) {
  
     try {
       let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-      console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
+      console.log(response.data.result.results[0] + ' uploaded: ' + response.data.result.success);
     } catch (err) {
       console.log(err);
     }
@@ -480,7 +479,7 @@ async function pushFunc(argv) {
 
       try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
+        console.log(response.data.result.results[0] + ' uploaded: ' + response.data.result.success);
       } catch (err) {
         console.log(err);
       }
