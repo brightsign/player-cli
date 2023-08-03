@@ -74,7 +74,7 @@ yargs.command('rmPlayer <playerName>', 'remove a player', (yargs) => {
 }, removePlayerFunc);
 
 // Push a file or files to a player (file or directory)
-yargs.command('put <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {
+yargs.command('putFile <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
@@ -415,6 +415,7 @@ async function handleRawRequestFunc(argv) {
 }
 
 async function pushFunc(argv) {
+  console.log('Pushing file to player...'); 
   // get player data from argv
   let playerData = await pullData(argv);
   // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
@@ -422,7 +423,7 @@ async function pushFunc(argv) {
   let playerUser = playerData[0];
   let playerIP = playerData[1];
   let playerPW = playerData[2];
-
+  
   let requestOptions = {
     method: 'PUT',
     url: 'http://' + playerIP + '/api/v1/files/sd/' + argv.location,
@@ -488,6 +489,7 @@ async function pushFunc(argv) {
 }
 
 async function changePWFunc(argv) {
+
   // get player data from argv
   let playerData = await pullData(argv);
   // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
@@ -756,9 +758,13 @@ async function pullData(argv) {
   return returnArr;
 }
 
-async function requestFetch(requestOptions, user, pass) {
+async function requestFetch(requestOptions, user, pass) { 
   
+<<<<<<< Updated upstream
   if (pass !== "") {
+=======
+  if (pass !== "" && pass !== undefined) {
+>>>>>>> Stashed changes
     // console.log('Password set, using digest auth')
     let digestClient = new fetchDigest(user, pass);
     try {  
