@@ -415,7 +415,7 @@ async function handleRawRequestFunc(argv) {
 }
 
 async function pushFunc(argv) {
-  console.log('Pushing file to player...'); 
+
   // get player data from argv
   let playerData = await pullData(argv);
   // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
@@ -760,11 +760,7 @@ async function pullData(argv) {
 
 async function requestFetch(requestOptions, user, pass) { 
   
-<<<<<<< Updated upstream
-  if (pass !== "") {
-=======
   if (pass !== "" && pass !== undefined) {
->>>>>>> Stashed changes
     // console.log('Password set, using digest auth')
     let digestClient = new fetchDigest(user, pass);
     try {  
