@@ -127,8 +127,6 @@ yargs.command('getLogs <playerName>', 'Get logs', (yargs) => {
   });
 }, getLogsFunc);
 
-// Edit Registry
-
 // getFiles
 yargs.command('getFiles <playerName> [path]', 'Get files on player', (yargs) => {
   yargs.positional('playerName', {
@@ -185,6 +183,35 @@ yargs.command('getTime <playerName>', 'Get player time', (yargs) => {
   });
 }, getTimeFunc);
 
+// set time
+yargs.command('setTime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+  yargs.positional('timezone', {
+    type: 'string',
+    default: 'America/New_York',
+    describe: 'Timezone'
+  });
+  yargs.positional('time', {
+    type: 'string',
+    default: '',
+    describe: 'Time, hh:mm:ss'
+  });
+  yargs.positional('date', {
+    type: 'string',
+    default: '',
+    describe: 'Date, YYYY-MM-DD'
+  });
+  yargs.positional('applyTimezone', {
+    type: 'boolean',
+    default: true,
+    describe: 'Apply timezone to time'
+  });
+}, setTimeFunc);
+
 // check DWS
 yargs.command('checkDWS <playerName>', 'Check if player has a DWS password', (yargs) => {
   yargs.positional('playerName', {
@@ -213,6 +240,30 @@ yargs.command('getReg <playerName> [section] [key]', 'Get registry values', (yar
   });
 },getRegFunc);
 
+// edit registry
+yargs.command('setReg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+  yargs.positional('section', {
+    type: 'string',
+    default: '',
+    describe: 'Registry section'
+  });
+  yargs.positional('key', {
+    type: 'string',
+    default: '',
+    describe: 'Registry key'
+  });
+  yargs.positional('value', {
+    type: 'string',
+    default: '',
+    describe: 'Registry value'
+  });
+}, editRegFunc);
+
 // Factory reset
 yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
   yargs.positional('playerName', {
@@ -222,17 +273,31 @@ yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
   });
 }, factoryResetFunc);
 
-// Raw command
-yargs.command('raw', 'allow for raw input', (yargs) => {
-  yargs.option('i', { alias: 'targetIp', describe: 'IP Address of Target Player', type: 'string', demandOption: true });
-  yargs.option('p', { alias: 'targetPassword', describe: 'Password of Target Player', type: 'string', demandOption: false });
-  yargs.option('m', { alias: 'reqMethod', describe: 'Request method type', type: 'string', demandOption: true });
-  yargs.option('r', { alias: 'reqRoutes', describe: 'Request url route', type: 'string', demandOption: true });
-  yargs.option('a', { alias: 'rawResponse', describe: 'Raw HTTP REST Response', type: 'boolean', demandOption: false });
-  yargs.option('f', { alias: 'file', describe: 'Path to file to push if pushing file', type: 'string', demandOption: false })
-}, handleRawRequestFunc);
-
 // Handle commands
+async function editRegFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+
+  // create body
+  let rawBody = JSON.stringify({ "value": argv.value });
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/registry/' + argv.section + '/' + argv.key,
+    headers: { 'Content-Type': 'application/json' },
+    body: rawBody
+  }
+
+  // send request
+  try {
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+    console.log(response);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 async function factoryResetFunc(argv) {
   // get player data from argv
   let playerData = await pullData(argv);
@@ -250,6 +315,52 @@ async function factoryResetFunc(argv) {
     console.log(response);
   } catch (err) {
     console.log(err);
+  }
+}
+
+async function setTimeFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let timezone = argv.timezone;
+  let setDate = argv.date;
+  let setTime = argv.time;
+  let applyTimezoneBool = argv.applyTimezone;
+
+  const timeFormatRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
+  const dateFormatRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+  if (setTime == '' && setDate == '' && !timeFormatRegex.test(setTime) && !dateFormatRegex.test(setDate)) {
+    console.log('Date and time entered in wrong format, please use hh:mm:ss and YYYY-MM-DD respectively');
+  } else if (setTime != '' && !timeFormatRegex.test(setTime)) {
+    // time not entered correctly
+    console.log('Time not entered correctly, please enter in format hh:mm:ss');
+    return;
+  } else if (setDate != '' && !dateFormatRegex.test(setDate)) {
+    // date not entered correctly
+    console.log('Date not entered correctly, please enter in format YYYY-MM-DD');
+    return;
+  }
+  
+  // set the time on the player
+  let rawBody = JSON.stringify({
+    "time": setTime + ' ' + timezone,
+    "date": setDate,
+    "applyTimezone": applyTimezoneBool
+  });
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/time',
+    headers: { 'Content-Type': 'application/json' },
+    body: rawBody
+  }
+
+  try {
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+    console.log('Time set successfully: ' + response.data.result);
+  }
+  catch (error) {
+    console.log(error);
   }
 }
 
@@ -276,6 +387,51 @@ async function getRegFunc(argv) {
   try {
     let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log(response.data.result.value);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function setDWSFunc(argv) {
+  // get player data from argv
+  let playerData = await pullData(argv);
+  // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+  let onOff = argv.onOff;
+  let rawBody;
+
+  if (onOff == 'on') {
+    rawBody = JSON.stringify({"enable": true});
+    setDWSsubFunc(playerData, rawBody, onOff);
+  } else if (onOff == 'off') {
+    rawBody = JSON.stringify({"enable": false});
+    confirmDangerousCommand('Are you sure you want to turn off lDWS, this will disable all remote control of the player?', setDWSsubFunc, playerData, rawBody, onOff);
+  } else {
+    console.log('Invalid on/off value');
+    return;
+  }
+}
+
+async function setDWSsubFunc(playerData, rawBody, onOff) {
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
+    headers: { 'Content-Type': 'application/json' },
+    body: rawBody
+  };
+
+  try {
+    let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+    if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
+      console.log('DWS turned on, player rebooting');
+    } else if (response.data.result.success && response.data.result.reboot && onOff == 'off') {
+      console.log('DWS turned off, player rebooting');
+    } else if (response.data.result.success && !response.data.result.reboot && onOff == 'on') {
+      console.log('DWS turned on');
+    } else if (response.data.result.success && !response.data.result.reboot && onOff == 'off') {
+      console.log('DWS turned off');
+    } else {
+      console.log('set DWS failed');
+    }
   } catch (error) {
     console.log(error);
   }
@@ -715,6 +871,26 @@ async function screenshotFunc(argv) {
 }
 
 // General functions
+
+// confirm dangerous command
+function confirmDangerousCommand(prompt, callback) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question(`${prompt} (Type 'Y' to confirm): `, (answer) => {
+    rl.close();
+    if (answer.toLowerCase() === 'y') {
+      callback();
+    } else {
+      console.log('Operation cancelled.');
+    }
+  });
+}
+
+
+// generate players.json file if it doesn't exist
 function generatePlayersJson() {
   if (fs.existsSync(CONFIG_FILE_PATH)) {
     //console.log('Players config file already exists');
@@ -763,8 +939,10 @@ async function pullData(argv) {
 
 async function requestFetch(requestOptions, user, pass) { 
   
-  if (pass !== "" && pass !== undefined) {
-    // console.log('Password set, using digest auth')
+  console.log(user, pass);
+
+  if (pass !== "" && typeof pass !== "undefined") {
+    console.log('Password set, using digest auth')
     let digestClient = new fetchDigest(user, pass);
     try {  
       let response = await digestClient.fetch(requestOptions.url, requestOptions);
@@ -781,7 +959,7 @@ async function requestFetch(requestOptions, user, pass) {
       let resData = await response.json();
       return resData;
     } catch (err) {
-      console.error(err);
+      //console.error(err);
       throw err;
     }
   }
