@@ -72,6 +72,10 @@ yargs.command('rmPlayer <playerName>', 'remove a player', (yargs) => {
   });
 }, removePlayerFunc);
 
+// List all players in your configuration
+yargs.command('listPlayers', 'List all players', (yargs) => {
+}, listPlayersFunc);
+
 // Reboot a player
 yargs.command('reboot <playerName>', 'Reboot a player', (yargs) => {
   yargs.positional('playerName', {
@@ -121,8 +125,6 @@ yargs.command('getLogs <playerName>', 'Get logs', (yargs) => {
     describe: 'Player name'
   });
 }, getLogsFunc);
-
-// Edit Registry
 
 // Raw command
 yargs.command('raw', 'allow for raw input', (yargs) => {
@@ -295,6 +297,19 @@ yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
 }, factoryResetFunc);
 
 // Handle commands
+
+// list players
+function listPlayersFunc() {
+  try {
+    playersJson = fs.readFileSync(CONFIG_FILE_PATH, 'utf8');
+    players = JSON.parse(playersJson);
+    console.log(players);
+  } catch (err) {
+    console.error('Error reading or parsing players.json: ', err);
+  }
+}
+
+// edit registry function
 async function editRegFunc(argv) {
   // get player data from argv
   let playerData = await pullData(argv);
