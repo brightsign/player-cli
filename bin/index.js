@@ -745,20 +745,27 @@ async function changePWFunc(argv) {
   let playerIP = playerData[1];
   let playerPW = playerData[2];
 
+  let rawBody = JSON.stringify({
+    "password": argv.newPassword,
+    "previous_password": playerPW
+  });
+
   let requestOptions = {
     method: 'PUT',
-    url: 'http://' + playerIP + '/api/v1/control/dws-password',
-    data: {
-      password: argv.newPassword,
-      previous_password: playerPW
-    }
+    url: 'http://' + playerData[1] + '/api/v1/control/dws-password',
+    headers: { 'Content-Type': 'application/json' },
+    body: rawBody
   };
 
   try {
     let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     console.log('Password changed (player side): ' + response.data.result.success);
     //console.log(response);
+  } catch (err) {
+    console.log('Error changing password on player: ', err);
+  }
 
+  try {
     // update password in players.json
     fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
       if (error) {
@@ -784,9 +791,8 @@ async function changePWFunc(argv) {
         console.log('Password changed (locally): successful');
       });
     });
-
   } catch (err) {
-    console.log(err);
+    console.log('Error changing password in players.json: ', err);
   }
 }
 
@@ -928,7 +934,7 @@ async function getDeviceInfo(argv) {
   };
   try {
     let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-    console.log(response);
+    console.log(response.data.result);
   } catch (err) {
     console.log(err);
   }
@@ -1027,18 +1033,19 @@ async function pullData(argv) {
 }
 
 async function requestFetch(requestOptions, user, pass) {
-  
-  console.log(user, pass);
 
   if (pass !== "" && typeof pass !== "undefined") {
     console.log('Password set, using digest auth')
+    if (typeof user === "undefined") {
+      user = "admin";
+    }
     let digestClient = new fetchDigest(user, pass);
     try {  
       let response = await digestClient.fetch(requestOptions.url, requestOptions);
       let resData = await response.json();
       return resData;
     } catch (err) {
-      console.error(err);
+      //console.error(err);
       throw err;
     }
   } else {
