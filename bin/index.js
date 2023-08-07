@@ -75,6 +75,18 @@ yargs.command('rmPlayer <playerName>', 'remove a player', (yargs) => {
   });
 }, removePlayerFunc);
 
+// Update a player in your configuration
+yargs.command('editPlayer <playerName>', 'Update a player', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    describe: 'Player name'
+  });
+  yargs.option('i', { alias: 'ipAddress', describe: 'Updated IP address', type: 'string', demandOption: false });
+  yargs.option('u', { alias: 'username', describe: 'Updated user', type: 'string', demandOption: false });
+  yargs.option('p', { alias: 'password', describe: 'Updated password', type: 'string', demandOption: false });
+
+}, editPlayerFunc);
+
 // List all players in your configuration
 yargs.command('listPlayers', 'List all players', (yargs) => {
 }, listPlayersFunc);
@@ -288,6 +300,48 @@ yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
 }, factoryResetFunc);
 
 // Handle commands
+
+// edit player
+function editPlayerFunc(argv) {
+  
+  let playerName = argv.playerName;
+  let playerSetUser = argv.username;
+  let playerSetPass = argv.password;
+  let playerSetIP = argv.ipAddress;
+
+  fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
+    if (error) {
+      console.error('Error reading players.json: ', error);
+    }
+
+    // parse the json
+    let JSONdata = JSON.parse(data);
+    // craft the json object that will replace the old one
+    if (argv.ipAddress) {
+      console.log('New IP address inputted');
+      JSONdata[playerName].ipAddress = playerSetIP;
+    }
+    if (argv.password) {
+      console.log('new password inputted');
+      JSONdata[playerName].password = playerSetPass;
+    }
+    if (argv.username) {
+      console.log('new username inputted');
+      JSONdata[playerName].username = playerSetUser;
+    }
+
+    // stringify the new json object
+    let newJSONdata = JSON.stringify(JSONdata, null, 2);
+    // write to the file
+    fs.writeFile(CONFIG_FILE_PATH, newJSONdata, 'utf8', (error) => {
+      if (error) {
+        console.error('Error writing file: ', error);
+        return;
+      }
+      console.log('Player edited successfully');
+    });
+  });
+}
 
 // list players
 function listPlayersFunc() {

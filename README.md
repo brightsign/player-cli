@@ -47,7 +47,7 @@ bsc rmPlayer [playerName]
 | --------- | ---- | ------------------------ | -------------------------------------- |
 | addPlayer | [x] | Add player configuration to players.json | bsc addPlayer \<playerName> \<ipAddress> [lDWS username] [lDWS password] |
 | rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer \<playerName> |
-| editPlayer | [] | Edit an already existing player's info |  |
+| editPlayer | [x] | Edit an already existing player's info | bsc editPlayer \<playerName> -i [playerIP] -u [playerUsername] -p [playerPassword] |
 | listPlayers | [x] | List players and their configuration in players.json | bsc listPlayers |
 | getDI | [x] | Get device info in the form of a JSON object | bsc getDI \<playerName> | 
 | put | [x] | Put file/files on a player. Specify a single file or a directory of files and the upload location (optional). Note that this only works when the player does not have a password set. | bsc put \<playerName> \<File/Directory> [location] |
