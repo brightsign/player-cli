@@ -75,6 +75,10 @@ yargs.command('rmPlayer <playerName>', 'remove a player', (yargs) => {
   });
 }, removePlayerFunc);
 
+// List all players in your configuration
+yargs.command('listPlayers', 'List all players', (yargs) => {
+}, listPlayersFunc);
+
 // Reboot a player
 yargs.command('reboot <playerName>', 'Reboot a player', (yargs) => {
   yargs.positional('playerName', {
@@ -159,6 +163,16 @@ yargs.command('putFile <playerName> <source> [destination]', 'Put files on a pla
     describe: 'Destination to push to (on player)'
   });
 }, pushFunc);
+
+// Raw command
+yargs.command('raw', 'allow for raw input', (yargs) => {
+  yargs.option('i', { alias: 'targetIp', describe: 'IP Address of Target Player', type: 'string', demandOption: true });
+  yargs.option('p', { alias: 'targetPassword', describe: 'Password of Target Player', type: 'string', demandOption: false });
+  yargs.option('m', { alias: 'reqMethod', describe: 'Request method type', type: 'string', demandOption: true });
+  yargs.option('r', { alias: 'reqRoutes', describe: 'Request url route', type: 'string', demandOption: true });
+  yargs.option('a', { alias: 'rawResponse', describe: 'Raw HTTP REST Response', type: 'boolean', demandOption: false });
+  yargs.option('f', { alias: 'file', describe: 'Path to file to push if pushing file', type: 'string', demandOption: false })
+}, handleRawRequestFunc);
 
 // delete file
 yargs.command('delFile <playerName> <file>', 'Delete a file', (yargs) => {
@@ -274,6 +288,19 @@ yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
 }, factoryResetFunc);
 
 // Handle commands
+
+// list players
+function listPlayersFunc() {
+  try {
+    playersJson = fs.readFileSync(CONFIG_FILE_PATH, 'utf8');
+    players = JSON.parse(playersJson);
+    console.log(players);
+  } catch (err) {
+    console.error('Error reading or parsing players.json: ', err);
+  }
+}
+
+// edit registry function
 async function editRegFunc(argv) {
   // get player data from argv
   let playerData = await pullData(argv);
