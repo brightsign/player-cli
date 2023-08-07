@@ -346,38 +346,35 @@ async function setTimeFunc(argv) {
 
   const timeFormatRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
   const dateFormatRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
-  if (setTime != '' && !timeFormatRegex.test(setTime)) {
+  if (setTime == '' && setDate == '' && !timeFormatRegex.test(setTime) && !dateFormatRegex.test(setDate)) {
+    console.log('Date and time entered in wrong format, please use hh:mm:ss and YYYY-MM-DD respectively');
+  } else if (setTime != '' && !timeFormatRegex.test(setTime)) {
     // time not entered correctly
     console.log('Time not entered correctly, please enter in format hh:mm:ss');
     return;
-  }
-  if (setDate != '' && !dateFormatRegex.test(setDate)) {
+  } else if (setDate != '' && !dateFormatRegex.test(setDate)) {
     // date not entered correctly
     console.log('Date not entered correctly, please enter in format YYYY-MM-DD');
     return;
   }
   
   // set the time on the player
+  let rawBody = JSON.stringify({
+    "time": setTime + ' ' + timezone,
+    "date": setDate,
+    "applyTimezone": applyTimezoneBool
+  });
+
   let requestOptions = {
     method: 'PUT',
     url: 'http://' + playerData[1] + '/api/v1/time',
-    header: { 'Content-Type': 'application/json' },
-    body: {
-      /*
-      time: setTime + ' ' + timezone,
-      date: setDate,
-      applyTimezone: applyTimezoneBool
-      */
-
-      "time": "01:34:00 PDT",
-      "date": "2003-03-23",
-      "applyTimezone": true
-    }
+    headers: { 'Content-Type': 'application/json' },
+    body: rawBody
   }
 
   try {
     let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-    console.log(response);
+    console.log('Time set successfully: ' + response.data.result);
   }
   catch (error) {
     console.log(error);
