@@ -300,10 +300,14 @@ async function editRegFunc(argv) {
   let playerData = await pullData(argv);
   // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
 
+  // create body
+  let rawBody = JSON.stringify({ "value": argv.value });
+
   let requestOptions = {
     method: 'PUT',
     url: 'http://' + playerData[1] + '/api/v1/registry/' + argv.section + '/' + argv.key,
-    body: { value: argv.value }
+    headers: { 'Content-Type': 'application/json' },
+    body: rawBody
   }
 
   // send request
@@ -955,7 +959,9 @@ async function pullData(argv) {
 
 async function requestFetch(requestOptions, user, pass) {
   
-  if (pass !== "") {
+  console.log(user, pass);
+
+  if (pass !== "" && typeof pass !== "undefined") {
     console.log('Password set, using digest auth')
     let digestClient = new fetchDigest(user, pass);
     try {  
