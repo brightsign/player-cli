@@ -415,23 +415,29 @@ async function setDWSFunc(argv) {
   // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
   let onOff = argv.onOff;
 
-  let requestOptions = {
-    method: 'PUT',
-    url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
-    body: {enable: true},
-  };
+  let rawBody;
 
   if (onOff == 'on') {
-    requestOptions.body.enable = true;
-    //console.log('Turning DWS on');
+    rawBody = JSON.stringify({"enable": true});
+    console.log('Turning DWS on');
   } else if (onOff == 'off') {
-    requestOptions.body.enable = false;
-    //console.log('Turning DWS off');
+    rawBody = JSON.stringify({"enable": false});
+    console.log('Turning DWS off');
   } else {
     console.log('Invalid on/off value');
     return;
   }
-  console.log(requestOptions);
+
+  let requestOptions = {
+    method: 'PUT',
+    url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
+    headers: { 'Content-Type': 'application/json' },
+    body: rawBody
+  };
+
+
+  
+  //console.log(requestOptions);
   try {
     let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
@@ -949,7 +955,7 @@ async function requestFetch(requestOptions, user, pass) {
       let resData = await response.json();
       return resData;
     } catch (err) {
-      console.error(err);
+      //console.error(err);
       throw err;
     }
   }
