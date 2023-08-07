@@ -72,25 +72,6 @@ yargs.command('rmPlayer <playerName>', 'remove a player', (yargs) => {
   });
 }, removePlayerFunc);
 
-// Push a file or files to a player (file or directory)
-yargs.command('put <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {
-  yargs.positional('playerName', {
-    type: 'string',
-    default: 'player1',
-    describe: 'Player name'
-  });
-  yargs.positional('FileDirectory', {
-    type: 'string',
-    default: '',
-    describe: 'File or directory to put'
-  });
-  yargs.positional('location', {
-    type: 'string',
-    default: '',
-    describe: 'Location to push to (on player)'
-  });
-}, pushFunc);
-
 // Reboot a player
 yargs.command('reboot <playerName>', 'Reboot a player', (yargs) => {
   yargs.positional('playerName', {
@@ -167,14 +148,24 @@ yargs.command('delFile <playerName> <file>', 'Delete a file', (yargs) => {
   });
 }, deleteFileFunc);
 
-// getTime 
-yargs.command('getTime <playerName>', 'Get player time', (yargs) => {
+// Push a file or files to a player (file or directory)
+yargs.command('putFile <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {
   yargs.positional('playerName', {
     type: 'string',
     default: 'player1',
     describe: 'Player name'
   });
-}, getTimeFunc);
+  yargs.positional('FileDirectory', {
+    type: 'string',
+    default: '',
+    describe: 'File or directory to put'
+  });
+  yargs.positional('location', {
+    type: 'string',
+    default: '',
+    describe: 'Location to push to (on player)'
+  });
+}, pushFunc);
 
 // getFiles
 yargs.command('getFiles <playerName> [path]', 'Get files on player', (yargs) => {
@@ -189,6 +180,44 @@ yargs.command('getFiles <playerName> [path]', 'Get files on player', (yargs) => 
     describe: 'Path to get files from'
   });
 }, getFilesFunc);
+
+// getTime 
+yargs.command('getTime <playerName>', 'Get player time', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'Player name'
+  });
+}, getTimeFunc);
+
+// set time
+yargs.command('setTime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+  yargs.positional('timezone', {
+    type: 'string',
+    default: 'America/New_York',
+    describe: 'Timezone'
+  });
+  yargs.positional('time', {
+    type: 'string',
+    default: '',
+    describe: 'Time, hh:mm:ss'
+  });
+  yargs.positional('date', {
+    type: 'string',
+    default: '',
+    describe: 'Date, YYYY-MM-DD'
+  });
+  yargs.positional('applyTimezone', {
+    type: 'boolean',
+    default: true,
+    describe: 'Apply timezone to time'
+  });
+}, setTimeFunc);
 
 // check DWS
 yargs.command('checkDWS <playerName>', 'Check if player has a DWS password', (yargs) => {
@@ -232,44 +261,6 @@ yargs.command('getReg <playerName> [section] [key]', 'Get registry values', (yar
   });
 },getRegFunc);
 
-// set time
-yargs.command('setTime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {
-  yargs.positional('playerName', {
-    type: 'string',
-    default: 'player1',
-    describe: 'player name'
-  });
-  yargs.positional('timezone', {
-    type: 'string',
-    default: 'America/New_York',
-    describe: 'Timezone'
-  });
-  yargs.positional('time', {
-    type: 'string',
-    default: '',
-    describe: 'Time, hh:mm:ss'
-  });
-  yargs.positional('date', {
-    type: 'string',
-    default: '',
-    describe: 'Date, YYYY-MM-DD'
-  });
-  yargs.positional('applyTimezone', {
-    type: 'boolean',
-    default: true,
-    describe: 'Apply timezone to time'
-  });
-}, setTimeFunc);
-
-// Factory reset
-yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
-  yargs.positional('playerName', {
-    type: 'string',
-    default: 'player1',
-    describe: 'player name'
-  });
-}, factoryResetFunc);
-
 // edit registry
 yargs.command('setReg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {
   yargs.positional('playerName', {
@@ -293,6 +284,15 @@ yargs.command('setReg <playerName> <section> <key> <value>', 'Edit registry valu
     describe: 'Registry value'
   });
 }, editRegFunc);
+
+// Factory reset
+yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {
+  yargs.positional('playerName', {
+    type: 'string',
+    default: 'player1',
+    describe: 'player name'
+  });
+}, factoryResetFunc);
 
 // Handle commands
 async function editRegFunc(argv) {

@@ -15,16 +15,6 @@ npm i
 Latest Local DWS REST API Documentation as of July 20, 2023.
 [Local DWS APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs)
 
-## Create players.json
-
-You will need to create the players.json file. This can be done by deleting the '.example' from the end of the file in cli-src, or by creating a new players.json file in the same folder. Once this file is created, and the module is installed, you can populate this object yourself, or use the command line:
-```
-bsc addPlayer <playerName> <ipAddress> [username] [password]
-```
-If you are going to use addPlayer or delPlayer, make sure to be in the directory that you cloned this repo to. This will not always be the case, but the way the path currently works this must be done. 
-
-**Make sure to install the CLI before using the above command to edit players.json.** [Install the CLI](#installing-npm-module-from-source)
-
 ## Installing NPM Module from source
 
 The following will need to be run to build the npm module. `bsc` will be built and ready to use. 
@@ -33,6 +23,13 @@ The following will need to be run to build the npm module. `bsc` will be built a
 npm -g install
 ```
 
+When you first try and use a command, if you have not configured the CLI for at least one player, an error will be thrown. The first command that should be run is the simple `bsc` which will prompt you to configure your starting player.
+```
+bsc
+```
+Simply enter the name you want to give to your player, the ip address, and the username and the password of the player. Remember that by default, the player's username is 'admin' and the password is the serial number. 
+
+**Note** to use file upload, the password must not be set on the player. You can easily turn off the password from the lDWS front end. 
 
 ## Usage
 
@@ -51,20 +48,20 @@ bsc rmPlayer [playerName]
 | rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer \<playerName> |
 | editPlayer | [] | Edit an already existing player's info |  |
 | getDI | [x] | Get device info in the form of a JSON object | bsc getDI \<playerName> | 
-| put | [x] | Put file/files on a player. Specify a single file or a directory of files and the upload location (optional) | bsc put \<playerName> \<File/Directory> [location] |
+| put | [x] | Put file/files on a player. Specify a single file or a directory of files and the upload location (optional). Note that this only works when the player does not have a password set. | bsc put \<playerName> \<File/Directory> [location] |
 | getFiles | [x] | get the files on the player's SD card or in a certain directory | bsc getFiles \<playerName> [path] |
 | reboot | [x] | Reboot the specified player | bsc reboot \<playerName> |
 | checkPW | [x] | Check if lDWS password is enabled | bsc checkPW \<playerName> |
 | screenshot | [x] | Take a screenshot | bsc screenshot \<playerName> |
 | delFile | [x] | Delete a file on the player | bsc delFile \<playerName> \<File> | 
-| setTime | [x - broken] | Set the player's time | bsc setTime \<playerName> \<timezone> \<time> \<date> [applyTimezone] | 
+| setTime | [] | Set the player's time | bsc setTime \<playerName> \<timezone> \<time> \<date> [applyTimezone] | 
 | getTime | [x] | Get the player's time | bsc getTime \<playerName> | 
 | checkDWS | [x] | Check if the DWS is enabled or not | bsc checkDWS \<playerName> | 
-| setDWS | [x - broken] | Toggles DWS on/off | bsc setDWS \<playerName> \<on/off> | 
+| setDWS | [] | Toggles DWS on/off | bsc setDWS \<playerName> \<on/off> | 
 | getLogs | [x] | Gets logs from the player and puts them in a local file | bsc getLogs \<playerName> |
 | facReset | [x] | Factory resets the player | bsc facReset \<playerName> |
 | getReg | [x] | Gets the registry | bsc getReg \<playerName> [section] [key] |
-| editReg | [x - broken] | Edits certain sections of the registry | bsc editReg \<playerName> \<section> \<key> \<value> |
+| editReg | [] | Edits certain sections of the registry | bsc editReg \<playerName> \<section> \<key> \<value> |
 
 
 ## Raw Requests:
@@ -90,15 +87,15 @@ Install the tool [jq](https://stedolan.github.io/jq/download/) to prettify the J
 
 Parse the keys:
 ```bash
-bsc raw -a=true -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq 'keys'
+bsc raw -a=true -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="info" | jq 'keys'
 ```
 
 Prettify the entire response: 
 ```bash
-bsc raw -a=true -i=192.168.128.101 -p=XAE28N000058 -m=GET -r="/info" | jq '.data.result'
+bsc raw -a=true -i=192.168.128.101 -p=XAE28N000058 -m=GET -r="info" | jq '.data.result'
 ```
 
 Parse the model from /info
 ```bash
-bsc raw -a=true -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="/info" | jq '.data.result.model'
+bsc raw -a=true -i=192.168.128.101 -p=ABC01A000001 -m=GET -r="info" | jq '.data.result.model'
 ```
