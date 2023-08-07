@@ -414,20 +414,21 @@ async function setDWSFunc(argv) {
   let playerData = await pullData(argv);
   // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
   let onOff = argv.onOff;
-
   let rawBody;
 
   if (onOff == 'on') {
     rawBody = JSON.stringify({"enable": true});
-    console.log('Turning DWS on');
+    setDWSsubFunc(playerData, rawBody, onOff);
   } else if (onOff == 'off') {
     rawBody = JSON.stringify({"enable": false});
-    console.log('Turning DWS off');
+    confirmDangerousCommand('Are you sure you want to turn off lDWS, this will disable all remote control of the player?', setDWSsubFunc, playerData, rawBody, onOff);
   } else {
     console.log('Invalid on/off value');
     return;
   }
+}
 
+async function setDWSsubFunc(playerData, rawBody, onOff) {
   let requestOptions = {
     method: 'PUT',
     url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
@@ -435,9 +436,6 @@ async function setDWSFunc(argv) {
     body: rawBody
   };
 
-
-  
-  //console.log(requestOptions);
   try {
     let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
     if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
@@ -888,6 +886,26 @@ async function screenshotFunc(argv) {
 }
 
 // General functions
+
+// confirm dangerous command
+function confirmDangerousCommand(prompt, callback) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question(`${prompt} (Type 'Y' to confirm): `, (answer) => {
+    rl.close();
+    if (answer.toLowerCase() === 'y') {
+      callback();
+    } else {
+      console.log('Operation cancelled.');
+    }
+  });
+}
+
+
+// generate players.json file if it doesn't exist
 function generatePlayersJson() {
   if (fs.existsSync(CONFIG_FILE_PATH)) {
     //console.log('Players config file already exists');
