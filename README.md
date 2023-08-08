@@ -24,13 +24,9 @@ The following will need to be run to build the npm module. `bsc` will be built a
 npm -g install
 ```
 
-When you first try and use a command, if you have not configured the CLI for at least one player, an error will be thrown. The first command that should be run is the simple `bsc` which will prompt you to configure your starting player.
-```
-bsc
-```
-Simply enter the name you want to give to your player, the ip address, and the username and the password of the player. Remember that by default, the player's username is 'admin' and the password is the serial number. 
+When you first try and use a command, if you have not configured the CLI for at least one player, the command will not be run and instead you will be prompted to configure your first player. Simply enter the name you want to give to your player, the ip address, and the username and the password of the player. Remember that by default, the player's username is 'admin' and the password is the serial number. 
 
-**Note** to use file upload, the password must not be set on the player. You can easily turn off the password from the lDWS front end. 
+**Note** to use file upload, the password must not be set on the player. You can easily turn off the password using `setpw` or from the lDWS front end. This is a WIP and this doc will be updated when this functionality exists.
 
 ## Usage
 
