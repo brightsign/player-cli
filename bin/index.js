@@ -1,15 +1,13 @@
 #!/usr/bin/env node
-
 const yargs = require('yargs');
 const handlers = require('./handlerFunctions.js');
 const positionals = require('./positionalFunctions.js');
 
-
 // set up commands
-yargs.scriptName('bsc')
-yargs.usage('Built-in command usage: $0 <command> [options]')
-yargs.help()
-yargs.alias('h', 'help')
+yargs.scriptName('bsc');
+yargs.usage('Built-in command usage: $0 <command> [options]');
+yargs.help();
+yargs.alias('h', 'help');
 
 // give examples of raw usage
 yargs.usage('Raw usage: bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawResponse]');
@@ -20,73 +18,74 @@ yargs.usage('       bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/
 
 
 // Get Device Info
-yargs.command('getDI <playerName>', 'Get Device Info', (yargs) => {positionals.getDiPositional(yargs)}, (argv) => {handlers.getDeviceInfo(argv)});
+yargs.command('getdi <playerName>', 'Get Device Info', (yargs) => {positionals.getDiPositional(yargs)}, (argv) => {handlers.getDeviceInfo(argv)});
 
 // Add a player to your configuration
-yargs.command('addPlayer <playerName> <ipAddress> [username] [password]', 'Add a player', (yargs) => {positionals.addPlayerPositional(yargs)}, (argv) => {handlers.addPlayer(argv)});
+yargs.command('addplayer <playerName> <ipAddress> [username] [password]', 'Add a player', (yargs) => {positionals.addPlayerPositional(yargs)}, (argv) => {handlers.addPlayer(argv)});
 
 // Remove a player from your configuration
-yargs.command('rmPlayer <playerName>', 'remove a player', (yargs) => {positionals.rmPlayerPositional(yargs)}, (argv) => {handlers.removePlayer(argv)});
+yargs.command('rmplayer <playerName>', 'remove a player', (yargs) => {positionals.rmPlayerPositional(yargs)}, (argv) => {handlers.removePlayer(argv)});
 
 // Update a player in your configuration
-yargs.command('editPlayer <playerName>', 'Update a player', (yargs) => {positionals.editPlayerPositional(yargs)}, (argv) => {handlers.editPlayer(argv)});
+yargs.command('editplayer <playerName>', 'Update a player', (yargs) => {positionals.editPlayerPositional(yargs)}, (argv) => {handlers.editPlayer(argv)});
 
 // List all players in your configuration
-yargs.command('listPlayers', 'List all players', (yargs) => {}, handlers.listPlayers);
+yargs.command('listplayers', 'List all players', (yargs) => {}, handlers.listPlayers);
 
 // Reboot a player
 yargs.command('reboot <playerName>', 'Reboot a player', (yargs) => {positionals.rebootPositional(yargs)}, (argv) => {handlers.reboot(argv)});
 
 // Check if player has a lDWS password
-yargs.command('checkPW <playerName>', 'Check if player has a lDWS password', (yargs) => {positionals.checkPWPositional(yargs)}, (argv) => {handlers.checkPW(argv)});
+yargs.command('checkpw <playerName>', 'Check if player has a lDWS password', (yargs) => {positionals.checkPWPositional(yargs)}, (argv) => {handlers.checkPW(argv)});
 
 // Change player lDWS password
-yargs.command('setPW <playerName> [newPassword]', 'Change player lDWS password, enter "" for no password', (yargs) => {positionals.changePWPositional(yargs)}, (argv) => {handlers.changePW(argv)});
+yargs.command('setpw <playerName> [newPassword]', 'Change player lDWS password, enter "" for no password', (yargs) => {positionals.changePWPositional(yargs)}, (argv) => {handlers.changePW(argv)});
 
 // Take a screenshot
 yargs.command('screenshot <playerName>', 'Take a screenshot', (yargs) => {positionals.screenshotPositional(yargs)}, (argv) => {handlers.screenshot(argv)});
 
 // Get logs
-yargs.command('getLogs <playerName>', 'Get logs', (yargs) => {positionals.getLogsPositional(yargs)}, (argv) => {handlers.getLogs(argv)});
+yargs.command('getlogs <playerName>', 'Get logs', (yargs) => {positionals.getLogsPositional(yargs)}, (argv) => {handlers.getLogs(argv)});
 
 // Raw command
 yargs.command('raw', 'allow for raw input', (yargs) => {positionals.rawPositional(yargs)}, (argv) => {handlers.handleRawRequest(argv)});
 
 // delete file
-yargs.command('delFile <playerName> <file>', 'Delete a file', (yargs) => {positionals.delFilePositional(yargs)}, (argv) => {handlers.deleteFile(argv)});
+yargs.command('delfile <playerName> <file>', 'Delete a file', (yargs) => {positionals.delFilePositional(yargs)}, (argv) => {handlers.deleteFile(argv)});
 
 // Push a file or files to a player (file or directory)
-yargs.command('putFile <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {positionals.putFilePositional(yargs)}, (argv) => {handlers.push(argv)});
+yargs.command('putfile <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {positionals.putFilePositional(yargs)}, (argv) => {handlers.push(argv)});
 
 // getFiles
-yargs.command('getFiles <playerName> [path]', 'Get files on player', (yargs) => {positionals.getFilePositional(yargs)}, (argv) => {handlers.getFiles(argv)});
+yargs.command('getfiles <playerName> [path]', 'Get files on player', (yargs) => {positionals.getFilePositional(yargs)}, (argv) => {handlers.getFiles(argv)});
 
 // getTime 
-yargs.command('getTime <playerName>', 'Get player time', (yargs) => {positionals.getTimePositional(yargs)}, (argv) => {handlers.getTime(argv)});
+yargs.command('gettime <playerName>', 'Get player time', (yargs) => {positionals.getTimePositional(yargs)}, (argv) => {handlers.getTime(argv)});
 
 // set time
-yargs.command('setTime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {positionals.setTimePositional(yargs)}, (argv) => {handlers.setTime(argv)});
+yargs.command('settime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {positionals.setTimePositional(yargs)}, (argv) => {handlers.setTime(argv)});
 
 // check DWS
-yargs.command('checkDWS <playerName>', 'Check if player has a DWS password', (yargs) => {positionals.checkDWSPositional(yargs)}, (argv) => {handlers.checkDWS(argv)});
+yargs.command('checkdws <playerName>', 'Check if player has a DWS password', (yargs) => {positionals.checkDWSPositional(yargs)}, (argv) => {handlers.checkDWS(argv)});
 
 // set DWS
-yargs.command('setDWS <playerName> <onOff>', 'set DWS on/off', (yargs) => {positionals.setDWSPositional(yargs)}, (argv) => {handlers.setDWS(argv)});
+yargs.command('setdws <playerName> <onOff>', 'set DWS on/off', (yargs) => {positionals.setDWSPositional(yargs)}, (argv) => {handlers.setDWS(argv)});
 
 // get registry
-yargs.command('getReg <playerName> [section] [key]', 'Get registry values', (yargs) => {positionals.getRegPositional(yargs)}, (argv) => {handlers.getReg(argv)});
+yargs.command('getreg <playerName> [section] [key]', 'Get registry values', (yargs) => {positionals.getRegPositional(yargs)}, (argv) => {handlers.getReg(argv)});
 
 // edit registry
-yargs.command('setReg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {positionals.setRegPositional(yargs)}, (argv) => {handlers.editReg(argv)});
+yargs.command('setreg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {positionals.setRegPositional(yargs)}, (argv) => {handlers.editReg(argv)});
 
 // Factory reset
-yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {positionals.facResetPositional(yargs)}, (argv) => {handlers.factoryReset(argv)});
+yargs.command('facreset <playerName>', 'Factory reset player', (yargs) => {positionals.facResetPositional(yargs)}, (argv) => {handlers.factoryReset(argv)});
 
 function main() {
   let exists = handlers.checkConfigExists();
   if (!exists) {
     handlers.generatePlayersJson();
   } else {
+    yargs.recommendCommands();
     yargs.demandCommand(1, '')
       .help()
       .argv;
