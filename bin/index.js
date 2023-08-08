@@ -82,19 +82,20 @@ yargs.command('setReg <playerName> <section> <key> <value>', 'Edit registry valu
 // Factory reset
 yargs.command('facReset <playerName>', 'Factory reset player', (yargs) => {positionals.facResetPositional(yargs)}, (argv) => {handlers.factoryReset(argv)});
 
-async function main() {
-  let exists = await handlers.checkConfigExists();
+function main() {
+  let exists = handlers.checkConfigExists();
   if (!exists) {
     handlers.generatePlayersJson();
+  } else {
+    yargs.demandCommand(1, '')
+      .help()
+      .argv;
   }
 }
 
-// Run main function and parse commands
+// Run main function
 main();
-yargs.argv;
 
-/*
-yargs.demandCommand(1, '')
-  .help()
-  .argv;
-*/
+
+
+

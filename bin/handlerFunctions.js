@@ -682,7 +682,6 @@ async function screenshot(argv) {
     }
 }
 
-
 // General functions
 // confirm dangerous command
 function confirmDangerousCommand(prompt, callback) {
@@ -755,26 +754,27 @@ async function requestFetch(requestOptions, user, pass) {
 
     if (pass !== "" && typeof pass !== "undefined") {
         console.log('Password set, using digest auth')
-        if (typeof user === "undefined") {
-        user = "admin";
+        console.log(user);
+        if (typeof user === "undefined" || user === "") {
+            user = "admin";
         }
         let digestClient = new fetchDigest(user, pass);
         try {  
-        let response = await digestClient.fetch(requestOptions.url, requestOptions);
-        let resData = await response.json();
+            let response = await digestClient.fetch(requestOptions.url, requestOptions);
+            let resData = await response.json();
         return resData;
         } catch (err) {
-        //console.error(err);
-        throw err;
+            //console.error(err);
+            throw err;
         }
     } else {
         console.log('No password set, using no auth')
         try {
-        let response = await fetch(requestOptions.url, requestOptions);
-        let resData = await response.json();
-        return resData;
+            let response = await fetch(requestOptions.url, requestOptions);
+            let resData = await response.json();
+            return resData;
         } catch (err) {
-        //console.error(err);
+            //console.error(err);
         throw err;
         }
     }
@@ -820,7 +820,7 @@ async function getFiles(path) {
 }
 
 // check if config exists function
-async function checkConfigExists() {
+function checkConfigExists() {
     let exists;
     if (!fs.existsSync(CONFIG_FILE_PATH)) {
         console.log('Players config file does not exist, creating...');
