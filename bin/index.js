@@ -632,7 +632,7 @@ async function getLogsFunc(argv) {
 async function handleRawRequestFunc(argv) {
   console.log('Handling Raw Request');
   let ipAddressRaw = argv.i;
-  let targetPasswordRaw = argv.p;
+  let targetPasswordRaw = argv.p ? argv.p : '';
   let requestMethodRaw = argv.m;
   let requestRouteRaw = argv.r;
   let rawResponseRaw = argv.a;
@@ -1098,10 +1098,31 @@ async function getFiles(path) {
   }
 }
 
-function main() {
-  generatePlayersJson();
+async function checkConfigExists() {
+  let exists;
+  if (!fs.existsSync(CONFIG_FILE_PATH)) {
+    console.log('Players config file does not exist, creating...');
+    exists = false;
+    return exists;
+  } else {
+    exists = true;
+    return exists;
+  }
+}
+
+async function main() {
+  let exists = await checkConfigExists();
+  if (!exists) {
+    generatePlayersJson();
+  }
 }
 
 // Run main function and parse commands
 main();
 yargs.argv;
+
+/*
+yargs.demandCommand(1, '')
+  .help()
+  .argv;
+*/
