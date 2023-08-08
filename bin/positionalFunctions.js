@@ -25,11 +25,6 @@ function addPlayerPositional(yargs) {
         type: 'string',
         describe: 'player password'
     });
-    yargs.positional('storage', {
-        type: 'string',
-        default: 'sd',
-        describe: 'player storage type'
-    })
 }
 
 function rmPlayerPositional(yargs) {
@@ -45,10 +40,9 @@ function editPlayerPositional(yargs) {
         type: 'string',
         describe: 'Player name'
     });
-    yargs.option('i', { alias: 'ipAddress', describe: 'New IP address', type: 'string', demandOption: false });
-    yargs.option('u', { alias: 'username', describe: 'New username', type: 'string', demandOption: false });
-    yargs.option('p', { alias: 'password', describe: 'New password', type: 'string', demandOption: false });
-    yargs.option('s', { alias: 'storage', describe: 'New storage type', type: 'string', demandOption: false });
+    yargs.option('i', { alias: 'ipAddress', describe: 'Updated IP address', type: 'string', demandOption: false });
+    yargs.option('u', { alias: 'username', describe: 'Updated user', type: 'string', demandOption: false });
+    yargs.option('p', { alias: 'password', describe: 'Updated password', type: 'string', demandOption: false });
 }
 
 function rebootPositional(yargs) {
