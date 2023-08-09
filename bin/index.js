@@ -57,7 +57,7 @@ yargs.command('delfile <playerName> <file>', 'Delete a file', (yargs) => {positi
 yargs.command('putfile <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {positionals.putFilePositional(yargs)}, (argv) => {handlers.push(argv)});
 
 // getFiles
-yargs.command('getfiles <playerName> [path]', 'Get files on player', (yargs) => {positionals.getFilePositional(yargs)}, (argv) => {handlers.getFiles(argv)});
+yargs.command('getfiles <playerName> [path]', 'Get files on player', (yargs) => {positionals.getFilePositional(yargs)}, (argv) => {handlers.getFilesCom(argv)});
 
 // getTime 
 yargs.command('gettime <playerName>', 'Get player time', (yargs) => {positionals.getTimePositional(yargs)}, (argv) => {handlers.getTime(argv)});

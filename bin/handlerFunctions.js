@@ -256,7 +256,7 @@ async function checkDWS(argv) {
 }
 
 // get files func
-async function getFiles(argv) {
+async function getFilesCom(argv) {
     // get player data from argv
     let playerData = await pullData(argv);
     // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
@@ -264,7 +264,7 @@ async function getFiles(argv) {
 
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerData[1] + '/api/v1/files/sd' + playerPath,
+        url: 'http://' + playerData[1] + '/api/v1/files/sd/' + playerPath,
     };
 
     try {
@@ -754,7 +754,7 @@ async function requestFetch(requestOptions, user, pass) {
 
     if (pass !== "" && typeof pass !== "undefined") {
         console.log('Password set, using digest auth')
-        console.log(user);
+        //console.log(user);
         if (typeof user === "undefined" || user === "") {
             user = "admin";
         }
@@ -842,7 +842,7 @@ module.exports = {
     getReg,
     setDWS,
     checkDWS,
-    getFiles,
+    getFilesCom,
     getTime,
     deleteFile,
     getLogs,
