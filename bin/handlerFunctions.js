@@ -256,7 +256,7 @@ async function checkDWS(argv) {
 }
 
 // get files func
-async function getFiles(argv) {
+async function getFilesCom(argv) {
     // get player data from argv
     let playerData = await pullData(argv);
     // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
@@ -264,7 +264,7 @@ async function getFiles(argv) {
 
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerData[1] + '/api/v1/files/sd' + playerPath,
+        url: 'http://' + playerData[1] + '/api/v1/files/sd/' + playerPath,
     };
 
     try {
@@ -418,10 +418,10 @@ async function push(argv) {
         requestOptions.body = form;
 
         try {
-        let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
+            let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+            console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
         } catch (err) {
-        console.log(err);
+            console.log(err);
         }
     } else if (!isFile){
         
@@ -429,20 +429,20 @@ async function push(argv) {
         //console.log('pushing directory'); 
         for (i = 0; i < files.length; i++) {
 
-        let fileToUpload = fs.createReadStream(files[i]);
+            let fileToUpload = fs.createReadStream(files[i]);
 
-        let form = new formData();
-        form.append('file', fileToUpload, {filename: files[i]});
-        requestOptions.body = form;
+            let form = new formData();
+            form.append('file', fileToUpload, {filename: files[i]});
+            requestOptions.body = form;
 
-        console.log('Pushing ' + files[i]);
+            console.log('Pushing ' + files[i]);
 
-        try {
-            let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-            console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
-        } catch (err) {
-            console.log(err);
-        }
+            try {
+                let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+                console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
+            } catch (err) {
+                console.log(err);
+            }
         }
     }
 }
@@ -480,28 +480,28 @@ async function changePW(argv) {
     try {
         // update password in players.json
         fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
-        if (error) {
-            console.error('Error reading file: ', error);
-            return;
-        }
-        // parse json object
-        let JSONdata = JSON.parse(data);
-
-        // add new player
-        JSONdata[argv.playerName] = {
-            ipAddress: playerIP,
-            password: argv.newPassword
-        }
-
-        // write new json object to file
-        let modifiedData = JSON.stringify(JSONdata, null, 2);
-        fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
             if (error) {
-            console.error('Error writing file: ', error);
-            return;
+                console.error('Error reading file: ', error);
+                return;
             }
-            console.log('Password changed (locally): successful');
-        });
+            // parse json object
+            let JSONdata = JSON.parse(data);
+
+            // add new player
+            JSONdata[argv.playerName] = {
+                ipAddress: playerIP,
+                password: argv.newPassword
+            }
+
+            // write new json object to file
+            let modifiedData = JSON.stringify(JSONdata, null, 2);
+            fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
+                if (error) {
+                    console.error('Error writing file: ', error);
+                    return;
+                }
+                console.log('Password changed (locally): successful');
+            });
         });
     } catch (err) {
         console.log('Error changing password in players.json: ', err);
@@ -582,8 +582,8 @@ async function reboot(argv) {
 function addPlayer(argv) {
     fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
         if (error) {
-        console.error('Error reading file: ', error);
-        return;
+            console.error('Error reading file: ', error);
+            return;
         }
 
         // parse json object
@@ -591,9 +591,9 @@ function addPlayer(argv) {
 
         // add new player
         JSONdata[argv.playerName] = {
-        ipAddress: argv.ipAddress,
-        password: argv.password,
-        username: argv.username
+            ipAddress: argv.ipAddress,
+            password: argv.password,
+            username: argv.username
         }
 
         // write new json object to file
@@ -625,11 +625,11 @@ function removePlayer(argv) {
         // write new json object to file
         let modifiedData = JSON.stringify(JSONdata, null, 2);
         fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
-        if (error) {
-            console.error('Error writing file: ', error);
-            return;
-        }
-        console.log('Player removed successfully');
+            if (error) {
+                console.error('Error writing file: ', error);
+                return;
+            }
+            console.log('Player removed successfully');
         });
     });
 }
@@ -754,7 +754,7 @@ async function requestFetch(requestOptions, user, pass) {
 
     if (pass !== "" && typeof pass !== "undefined") {
         console.log('Password set, using digest auth')
-        console.log(user);
+        //console.log(user);
         if (typeof user === "undefined" || user === "") {
             user = "admin";
         }
@@ -808,9 +808,9 @@ async function getFiles(path) {
 
         let lastChar = path[path.length - 1];
         if (lastChar != '/') {
-        filesArr = files.map(file => `${path}/${file}`);
+            filesArr = files.map(file => `${path}/${file}`);
         } else {
-        filesArr = files.map(file => `${path}${file}`);
+            filesArr = files.map(file => `${path}${file}`);
         }
         return filesArr;
     } catch (err) {
@@ -842,7 +842,7 @@ module.exports = {
     getReg,
     setDWS,
     checkDWS,
-    getFiles,
+    getFilesCom,
     getTime,
     deleteFile,
     getLogs,
