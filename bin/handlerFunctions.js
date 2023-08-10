@@ -119,6 +119,9 @@ async function setTime(argv) {
     let setTime = argv.time;
     let applyTimezoneBool = argv.applyTimezone;
 
+    // check if time and date are in correct format
+    // regex is a way to specify a pattern of characters to be matched in a string
+    // time format is hh:mm:ss, date format is YYYY-MM-DD
     const timeFormatRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
     const dateFormatRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
     if (setTime == '' && setDate == '' && !timeFormatRegex.test(setTime) && !dateFormatRegex.test(setDate)) {
@@ -198,7 +201,7 @@ async function setDWS(argv) {
         setDWSsubFunc(playerData, rawBody, onOff);
     } else if (onOff == 'off') {
         rawBody = JSON.stringify({"enable": false});
-        confirmDangerousCommand('Are you sure you want to turn off lDWS, this will disable all remote control of the player?', setDWSsubFunc, playerData, rawBody, onOff);
+        confirmDangerousCommand('This may disable access to the player DWS APIs, limiting CLI capability (as of 8/10/23, using this command will disable local DWS APIs).', setDWSsub, playerData, rawBody, onOff);
     } else {
         console.log('Invalid on/off value');
         return;
@@ -217,15 +220,15 @@ async function setDWSsub(playerData, rawBody, onOff) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
-        console.log('DWS turned on, player rebooting');
+            console.log('DWS turned on, player rebooting');
         } else if (response.data.result.success && response.data.result.reboot && onOff == 'off') {
-        console.log('DWS turned off, player rebooting');
+            console.log('DWS turned off, player rebooting');
         } else if (response.data.result.success && !response.data.result.reboot && onOff == 'on') {
-        console.log('DWS turned on');
+            console.log('DWS turned on');
         } else if (response.data.result.success && !response.data.result.reboot && onOff == 'off') {
-        console.log('DWS turned off');
+            console.log('DWS turned off');
         } else {
-        console.log('set DWS failed');
+            console.log('set DWS failed');
         }
     } catch (error) {
         console.log(error);
