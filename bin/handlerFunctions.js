@@ -246,9 +246,9 @@ async function checkDWS(argv) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         if (response.data.result.value) {
-        console.log('DWS is enabled')
+            console.log('DWS is enabled')
         } else {
-        console.log('DWS is disabled')
+            console.log('DWS is disabled')
         }
     } catch (error) {
         console.log(error);

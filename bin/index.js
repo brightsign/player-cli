@@ -66,7 +66,7 @@ yargs.command('gettime <playerName>', 'Get player time', (yargs) => {positionals
 yargs.command('settime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {positionals.setTimePositional(yargs)}, (argv) => {handlers.setTime(argv)});
 
 // check DWS
-yargs.command('checkdws <playerName>', 'Check if player has a DWS password', (yargs) => {positionals.checkDWSPositional(yargs)}, (argv) => {handlers.checkDWS(argv)});
+yargs.command('checkdws <playerName>', 'Check if player has DWS enabled', (yargs) => {positionals.checkDWSPositional(yargs)}, (argv) => {handlers.checkDWS(argv)});
 
 // set DWS
 yargs.command('setdws <playerName> <onOff>', 'set DWS on/off', (yargs) => {positionals.setDWSPositional(yargs)}, (argv) => {handlers.setDWS(argv)});
