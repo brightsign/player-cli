@@ -126,6 +126,7 @@ async function setTime(argv) {
     const dateFormatRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
     if (setTime == '' && setDate == '' && !timeFormatRegex.test(setTime) && !dateFormatRegex.test(setDate)) {
         console.log('Date and time entered in wrong format, please use hh:mm:ss and YYYY-MM-DD respectively');
+        return;
     } else if (setTime != '' && !timeFormatRegex.test(setTime)) {
         // time not entered correctly
         console.log('Time not entered correctly, please enter in format hh:mm:ss');
