@@ -519,31 +519,9 @@ async function checkPW(argv) {
     let playerData = await pullData(argv);
     // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
 
-    // For next version:
-    // If password is set on player and not locally, this will return an error from requestFetch
-    // that should be handled within this function -> if certain error, then password is set on player
-    // so: 
-    /*
-        1. find out what error is returned when password is set on player and is not set, or set wrong, locally
-        a. call that error "authError", return as a boolean that is true if error is authError
-        2. if that error, then password is set on player and wrong/null locally
-        3. if that error AND password is set locally, then local password is wrong
-        a. if (authError && players[argv.playername].password !== '') -> password is wrong
-        4. if that error AND password not set locally -> must either turn player password off or set a password locally
-        a. if (authError && players[argv.playername].password == '') -> password is not set locally
-        5. if no error AND return object says password is blank (true), then password is not set on player
-        a. if (!authErro && response.data.result.password.isBlank) -> password is not set on player
-        6. if no error AND return object says password is not blank (false), then password is set on player and correct locally
-        a. if (!authError && !response.data.result.password.isBlank) -> password is set on player and correct locally
-    */
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
-
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerIP + '/api/v1/control/dws-password',
+        url: 'http://' + playerData[1] + '/api/v1/control/dws-password',
     };
 
     try {
