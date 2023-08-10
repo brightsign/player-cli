@@ -84,7 +84,7 @@ async function editReg(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
@@ -105,7 +105,7 @@ async function factoryReset(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
@@ -155,8 +155,8 @@ async function setTime(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log('Time set successfully: ' + response.data.result);
     }
-    catch (error) {
-        console.log(error);
+    catch (err) {
+        errorHandler(err);
     }
 }
 
@@ -184,8 +184,8 @@ async function getReg(argv) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result.value);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
@@ -231,8 +231,8 @@ async function setDWSsub(playerData, rawBody, onOff) {
         } else {
             console.log('set DWS failed');
         }
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
@@ -254,8 +254,8 @@ async function checkDWS(argv) {
         } else {
             console.log('DWS is disabled')
         }
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
@@ -274,8 +274,8 @@ async function getFilesCom(argv) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result.files);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
@@ -293,8 +293,8 @@ async function getTime(argv) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
@@ -314,8 +314,8 @@ async function deleteFile(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(playerPath + ' deleted: ' + response.data.result.success);
     }
-    catch (error) {
-        console.log(error);
+    catch (err) {
+        errorHandler(err);
     }
 }
 
@@ -337,8 +337,8 @@ async function getLogs(argv) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
@@ -367,8 +367,8 @@ async function handleRawRequest(argv) {
 
     try {
         let response = await requestFetch(requestOptions, 'admin', targetPasswordRaw);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
     if(rawResponseRaw) {
         console.log(response);
@@ -408,7 +408,7 @@ async function push(argv) {
         }
         catch (err) {
         console.log('Error getting files from directory!');
-        console.log(err);
+        console.error(err);
         }
     }
 
@@ -425,7 +425,7 @@ async function push(argv) {
             let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
             console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
         } catch (err) {
-            console.log(err);
+            errorHandler(err);
         }
     } else if (!isFile){
         
@@ -445,7 +445,7 @@ async function push(argv) {
                 let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
                 console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
             } catch (err) {
-                console.log(err);
+                errorHandler(err);
             }
         }
     }
@@ -478,7 +478,7 @@ async function changePW(argv) {
         console.log('Password changed (player side): ' + response.data.result.success);
         //console.log(response);
     } catch (err) {
-        console.log('Error changing password on player: ', err);
+        errorHandler(err);
     }
 
     try {
@@ -552,8 +552,21 @@ async function checkPW(argv) {
         //console.log(response.data.result.password);
         //console.log('Player has password set: ' + response.data.result.password.);
         console.log('Password is blank: ' + response.data.result.password.isBlank);
+        if (response.data.result.password.isBlank && (playerData[2] == '' || playerData[2] == undefined)) {
+            console.log('No password set locally, no password on player, you are good to go!')
+        } else if (!response.data.result.password.isBlank && (playerData[2] !== '' || playerData[2] !== undefined)) {
+            console.log('Password is set on the player, and your local password is set correctly, you are good to go!')
+        } else if (response.data.result.password.isBlank && (playerData[2] !== '' || playerData[2] !== undefined)) {
+            console.log('Password is not set on the player, but you have a password set locally. This will continue to work, but consider changing your password locally to be blank.')
+        }
+
     } catch (err) {
-        console.log(err);
+        let errorType = errorHandler(err);
+        if (errorType == "wrongPW" && (playerData[2] !== '' || playerData[2] !== undefined)) {
+            console.log('Your local password is wrong. Remember that the default password is the player serial number.');
+        } else if (errorType == "wrongPW" && (playerData[2] == '' || playerData[2] == undefined)) {
+            console.log('Your local password is not set, however the player has a password set');
+        }
     }
 }
 
@@ -578,7 +591,7 @@ async function reboot(argv) {
         //console.log(response);
         console.log('Player rebooted: ' + response.data.result.success);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
@@ -657,7 +670,7 @@ async function getDeviceInfo(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
@@ -682,7 +695,7 @@ async function screenshot(argv) {
         //console.log(response);
         console.log('Screenshot taken! Location: ' + response.data.result.filename);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
@@ -818,7 +831,6 @@ async function getFiles(path) {
         }
         return filesArr;
     } catch (err) {
-        console.error(err);
         throw err;
     }
 }
@@ -833,6 +845,31 @@ function checkConfigExists() {
     } else {
         exists = true;
         return exists;
+    }
+}
+
+function errorHandler(err) {
+    
+    /*
+    if (rawflag) {
+        console.error(err);
+    }
+    */
+
+
+    // If password is wrong: fetch returns "invalid json response body at <url> reason: Unexpected toekn U in JSON at position 4" with type "invalid-json"
+    // BIG CHECK: IS THIS THE ONLY TIME THIS PW TYPE IS RETURNED
+    let wrongPWtype = 'invalid-json';
+    let wrongPWMessage = 'Unexpected token U in JSON at position 4';
+
+    if (err.type === wrongPWtype && err.message.slice(-40) == wrongPWMessage) {
+        console.log('Your local password is incorrect, please change it with the "editplayer" command. Example usage: bsc editplayer playerName -p playerPassword');
+        console.log('For more info on your password error, use the checkpw command')
+        return "wrongPW";
+    } else {
+        console.log('You have encountered an unknown error, please contact the developer and try again');
+        console.error(err);
+        return "unkownError";
     }
 }
 
