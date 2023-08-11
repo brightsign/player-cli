@@ -721,22 +721,25 @@ function generatePlayersJson() {
     rl.question('Enter player name: ', (playerName) => {
         playersDefault[playerName] = {};
         rl.question('Enter player IP address: ', (ipAddress) => {
-        playersDefault[playerName].ipAddress = ipAddress;
-        rl.question('Enter player username: ', (username) => {
-            playersDefault[playerName].username = username;
-            rl.question('Enter player password: ', (password) => {
-            playersDefault[playerName].password = password;
-            rl.close();
-            let playersDefaultString = JSON.stringify(playersDefault, null, 2);
+            playersDefault[playerName].ipAddress = ipAddress;
+            rl.question('Enter player username: ', (username) => {
+                playersDefault[playerName].username = username;
+                rl.question('Enter player password: ', (password) => {
+                    playersDefault[playerName].password = password;
+                    rl.question('Enter player storage: ', (storage) => {
+                        playersDefault[playerName].storage = storage;
+                        rl.close();
+                        let playersDefaultString = JSON.stringify(playersDefault, null, 2);
 
-            fs.mkdirSync(currentPath.join(os.homedir(), '.bsc'), { recursive: true });
+                        fs.mkdirSync(currentPath.join(os.homedir(), '.bsc'), { recursive: true });
 
-            fs.writeFileSync(CONFIG_FILE_PATH, playersDefaultString, (err) => {
-                if (err) throw err;
-                console.log('Players config file created');
+                        fs.writeFileSync(CONFIG_FILE_PATH, playersDefaultString, (err) => {
+                            if (err) throw err;
+                            console.log('Players config file created');
+                        });
+                    });
+                });
             });
-            });
-        });
         });
     });
 }
