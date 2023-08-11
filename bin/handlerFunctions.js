@@ -38,6 +38,10 @@ function editPlayer(argv) {
             console.log('new username inputted');
             JSONdata[playerName].username = playerSetUser;
         }
+        if (argv.storage) {
+            console.log('new storage inputted');
+            JSONdata[playerName].storage = argv.storage;
+        }
 
         // stringify the new json object
         let newJSONdata = JSON.stringify(JSONdata, null, 2);
@@ -263,12 +267,12 @@ async function checkDWS(argv) {
 async function getFilesCom(argv) {
     // get player data from argv
     let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW, [3] = playerStorage
     let playerPath = argv.path;
 
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerData[1] + '/api/v1/files/sd/' + playerPath,
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + playerPath,
     };
 
     try {
@@ -302,12 +306,12 @@ async function getTime(argv) {
 async function deleteFile(argv) {
     // get player data from argv
     let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW, [3] = playerStorage
     let playerPath = argv.file;
 
     let requestOptions = {
         method: 'DELETE',
-        url: 'http://' + playerData[1] + '/api/v1/files/sd/' + playerPath,
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + playerPath,
     }
 
     try {
@@ -381,15 +385,11 @@ async function handleRawRequest(argv) {
 async function push(argv) {
     // get player data from argv
     let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW, [3] = playerStorage
 
     let requestOptions = {
         method: 'PUT',
-        url: 'http://' + playerIP + '/api/v1/files/sd/' + argv.location,
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + argv.location,
     };
 
     // check if file or directory
@@ -597,7 +597,8 @@ function addPlayer(argv) {
         JSONdata[argv.playerName] = {
             ipAddress: argv.ipAddress,
             password: argv.password,
-            username: argv.username
+            username: argv.username,
+            storage: argv.storage
         }
 
         // write new json object to file
@@ -748,8 +749,9 @@ async function pullData(argv) {
     let playerUser = players[argv.playerName].username;
     let playerIP = players[argv.playerName].ipAddress;
     let playerPW = players[argv.playerName].password;
+    let playerStorage = players[argv.playerName].storage;
 
-    let returnArr = [playerUser, playerIP, playerPW];
+    let returnArr = [playerUser, playerIP, playerPW, playerStorage];
     return returnArr;
 }
 
