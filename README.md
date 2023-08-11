@@ -23,9 +23,9 @@ The following will need to be run to build the npm module. `bsc` will be built a
 npm -g install
 ```
 
-When you first try and use a command, if you have not configured the CLI for at least one player, you will be prompted to do so. Simply enter the name you want to give to your player, the ip address, and the username and the password of the player. Remember that by default, the player's username is 'admin' and the password is the serial number. 
+When you first try and use a command, if you have not configured the CLI for at least one player, the command will not be run and instead you will be prompted to configure your first player. Simply enter the name you want to give to your player, the ip address, and the username and the password of the player. Remember that by default, the player's username is 'admin' and the password is the serial number. 
 
-**Note** to use file upload, the password must not be set on the player. You can easily turn off the password from the lDWS front end. 
+**Note** to use file upload, the password must not be set on the player. You can easily turn off the password using `setpw` or from the lDWS front end. This is a WIP and this doc will be updated when this functionality exists.
 
 ## Usage
 
@@ -42,7 +42,8 @@ bsc rmPlayer [playerName]
 | --------- | ---- | ------------------------ | -------------------------------------- |
 | addPlayer | [x] | Add player configuration to players.json | bsc addPlayer \<playerName> \<ipAddress> [lDWS username] [lDWS password] |
 | rmPlayer | [x] | Remove player configuration from players.json | bsc rmPlayer \<playerName> |
-| editPlayer | [] | Edit an already existing player's info |  |
+| editPlayer | [x] | Edit an already existing player's info | bsc editPlayer \<playerName> -i [playerIP] -u [playerUsername] -p [playerPassword] |
+| listPlayers | [x] | List players and their configuration in players.json | bsc listPlayers |
 | getDI | [x] | Get device info in the form of a JSON object | bsc getDI \<playerName> | 
 | put | [x] | Put file/files on a player. Specify a single file or a directory of files and the upload location (optional). Note that this only works when the player does not have a password set. | bsc put \<playerName> \<File/Directory> [location] |
 | getFiles | [x] | get the files on the player's SD card or in a certain directory | bsc getFiles \<playerName> [path] |
@@ -50,14 +51,14 @@ bsc rmPlayer [playerName]
 | checkPW | [x] | Check if lDWS password is enabled | bsc checkPW \<playerName> |
 | screenshot | [x] | Take a screenshot | bsc screenshot \<playerName> |
 | delFile | [x] | Delete a file on the player | bsc delFile \<playerName> \<File> | 
-| setTime | [] | Set the player's time | bsc setTime \<playerName> \<timezone> \<time> \<date> [applyTimezone] | 
+| setTime | [x] | Set the player's time | bsc setTime \<playerName> \<timezone> \<time> \<date> [applyTimezone] | 
 | getTime | [x] | Get the player's time | bsc getTime \<playerName> | 
 | checkDWS | [x] | Check if the DWS is enabled or not | bsc checkDWS \<playerName> | 
-| setDWS | [] | Toggles DWS on/off | bsc setDWS \<playerName> \<on/off> | 
+| setDWS | [x] | Toggles DWS on/off | bsc setDWS \<playerName> \<on/off> | 
 | getLogs | [x] | Gets logs from the player and puts them in a local file | bsc getLogs \<playerName> |
 | facReset | [x] | Factory resets the player | bsc facReset \<playerName> |
 | getReg | [x] | Gets the registry | bsc getReg \<playerName> [section] [key] |
-| editReg | [] | Edits certain sections of the registry | bsc editReg \<playerName> \<section> \<key> \<value> |
+| editReg | [x] | Edits certain sections of the registry | bsc editReg \<playerName> \<section> \<key> \<value> |
 
 
 ## Raw Requests:
