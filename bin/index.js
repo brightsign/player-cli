@@ -21,7 +21,7 @@ yargs.usage('       bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/
 yargs.command('getdi <playerName>', 'Get Device Info', (yargs) => {positionals.getDiPositional(yargs)}, (argv) => {handlers.getDeviceInfo(argv)});
 
 // Add a player to your configuration
-yargs.command('addplayer <playerName> <ipAddress> [username] [password]', 'Add a player', (yargs) => {positionals.addPlayerPositional(yargs)}, (argv) => {handlers.addPlayer(argv)});
+yargs.command('addplayer <playerName> <ipAddress> [username] [password] [storage]', 'Add a player', (yargs) => {positionals.addPlayerPositional(yargs)}, (argv) => {handlers.addPlayer(argv)});
 
 // Remove a player from your configuration
 yargs.command('rmplayer <playerName>', 'remove a player', (yargs) => {positionals.rmPlayerPositional(yargs)}, (argv) => {handlers.removePlayer(argv)});

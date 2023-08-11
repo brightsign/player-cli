@@ -38,6 +38,10 @@ function editPlayer(argv) {
             console.log('new username inputted');
             JSONdata[playerName].username = playerSetUser;
         }
+        if (argv.storage) {
+            console.log('new storage inputted');
+            JSONdata[playerName].storage = argv.storage;
+        }
 
         // stringify the new json object
         let newJSONdata = JSON.stringify(JSONdata, null, 2);
@@ -94,11 +98,14 @@ async function factoryReset(argv) {
     let playerData = await pullData(argv);
     // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
 
+    let rawBody = JSON.stringify({ "factory_reset": true });
+    
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/control/reboot',
+        headers: { 'Content-Type': 'application/json' },
+        body: rawBody
     }
-    requestOptions.body = { factory_reset: true };
 
     // send request
     try {
@@ -263,12 +270,12 @@ async function checkDWS(argv) {
 async function getFilesCom(argv) {
     // get player data from argv
     let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW, [3] = playerStorage
     let playerPath = argv.path;
 
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerData[1] + '/api/v1/files/sd/' + playerPath,
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + playerPath,
     };
 
     try {
@@ -302,12 +309,12 @@ async function getTime(argv) {
 async function deleteFile(argv) {
     // get player data from argv
     let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW, [3] = playerStorage
     let playerPath = argv.file;
 
     let requestOptions = {
         method: 'DELETE',
-        url: 'http://' + playerData[1] + '/api/v1/files/sd/' + playerPath,
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + playerPath,
     }
 
     try {
@@ -381,15 +388,11 @@ async function handleRawRequest(argv) {
 async function push(argv) {
     // get player data from argv
     let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW, [3] = playerStorage
 
     let requestOptions = {
         method: 'PUT',
-        url: 'http://' + playerIP + '/api/v1/files/sd/' + argv.location,
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + argv.location,
     };
 
     // check if file or directory
@@ -597,7 +600,8 @@ function addPlayer(argv) {
         JSONdata[argv.playerName] = {
             ipAddress: argv.ipAddress,
             password: argv.password,
-            username: argv.username
+            username: argv.username,
+            storage: argv.storage
         }
 
         // write new json object to file
@@ -705,39 +709,94 @@ function confirmDangerousCommand(prompt, callback) {
 }
 
 // generate players.json file if it doesn't exist
-function generatePlayersJson() {
-    if (fs.existsSync(CONFIG_FILE_PATH)) {
-        //console.log('Players config file already exists');
-        return;
+async function generatePlayersJson() {
+    let fileExists = await fsp.access(CONFIG_FILE_PATH).then(() => true).catch(() => false);
+    try {
+        if (fileExists === true) {
+            //console.log('Players config file already exists');
+            return;
+        }
+
+        let playersDefault = {};
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+
+        const getPlayerName = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player name: ', resolve);
+            });
+        };
+        const getPlayerIP = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player IP address: ', resolve);
+            });
+        };
+        const getUsername = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player username: ', resolve);
+            });
+        };
+        const getPassword = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player password: ', resolve);
+            });
+        };
+        const getStorage = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player storage type: ', resolve);
+            });
+        };
+
+        await getPlayerName()
+            .then((playerName) => {
+                playersDefault[playerName] = {};
+                return getPlayerIP();
+            })
+            .then((ipAddress) => {
+                const playerName = Object.keys(playersDefault)[0];
+                playersDefault[playerName].ipAddress = ipAddress;
+                return getUsername();
+            })
+            .then((username) => {
+                const playerName = Object.keys(playersDefault)[0];
+                if (username === '') {
+                    playersDefault[playerName].username = 'admin';
+                } else {
+                    playersDefault[playerName].username = username;
+                }
+                return getPassword();
+            })
+            .then((password) => {
+                const playerName = Object.keys(playersDefault)[0];
+                playersDefault[playerName].password = password;
+                return getStorage();
+            })
+            .then((storage) => {
+                const playerName = Object.keys(playersDefault)[0];
+                if (storage === '') {
+                    playersDefault[playerName].storage = 'sd';
+                } else {
+                    playersDefault[playerName].storage = storage;
+                }
+                rl.close();
+                console.log(playersDefault);
+            })
+            .catch((error) => {
+                console.error(error);
+                rl.close();
+            });
+        const playersDefaultString = JSON.stringify(playersDefault, null, 2);
+
+        await fsp.mkdir(currentPath.join(os.homedir(), '.bsc'), { recursive: true });
+        await fsp.writeFile(CONFIG_FILE_PATH, playersDefaultString);
+
+        console.log('Players config file generated successfully');
+
+    } catch (err) {
+        console.error('Error generating players.json, ', err);
     }
-
-    let playersDefault = {};
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
-    rl.question('Enter player name: ', (playerName) => {
-        playersDefault[playerName] = {};
-        rl.question('Enter player IP address: ', (ipAddress) => {
-        playersDefault[playerName].ipAddress = ipAddress;
-        rl.question('Enter player username: ', (username) => {
-            playersDefault[playerName].username = username;
-            rl.question('Enter player password: ', (password) => {
-            playersDefault[playerName].password = password;
-            rl.close();
-            let playersDefaultString = JSON.stringify(playersDefault, null, 2);
-
-            fs.mkdirSync(currentPath.join(os.homedir(), '.bsc'), { recursive: true });
-
-            fs.writeFileSync(CONFIG_FILE_PATH, playersDefaultString, (err) => {
-                if (err) throw err;
-                console.log('Players config file created');
-            });
-            });
-        });
-        });
-    });
 }
 
 // get player info from players.json
@@ -748,8 +807,9 @@ async function pullData(argv) {
     let playerUser = players[argv.playerName].username;
     let playerIP = players[argv.playerName].ipAddress;
     let playerPW = players[argv.playerName].password;
+    let playerStorage = players[argv.playerName].storage;
 
-    let returnArr = [playerUser, playerIP, playerPW];
+    let returnArr = [playerUser, playerIP, playerPW, playerStorage];
     return returnArr;
 }
 
