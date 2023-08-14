@@ -98,11 +98,14 @@ async function factoryReset(argv) {
     let playerData = await pullData(argv);
     // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
 
+    let rawBody = JSON.stringify({ "factory_reset": true });
+    
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/control/reboot',
+        headers: { 'Content-Type': 'application/json' },
+        body: rawBody
     }
-    requestOptions.body = { factory_reset: true };
 
     // send request
     try {
