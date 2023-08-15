@@ -709,42 +709,64 @@ function confirmDangerousCommand(prompt, callback) {
 }
 
 // generate players.json file if it doesn't exist
-function generatePlayersJson() {
-    if (fs.existsSync(CONFIG_FILE_PATH)) {
-        //console.log('Players config file already exists');
-        return;
-    }
+async function generatePlayersJson() {
+    try {
+        if (await fsp.access(CONFIG_FILE_PATH).catch(() => false)) {
+            //console.log('Players config file already exists');
+            return;
+        }
 
-    let playersDefault = {};
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
-    rl.question('Enter player name: ', (playerName) => {
-        playersDefault[playerName] = {};
-        rl.question('Enter player IP address: ', (ipAddress) => {
-            playersDefault[playerName].ipAddress = ipAddress;
-            rl.question('Enter player username: ', (username) => {
-                playersDefault[playerName].username = username;
-                rl.question('Enter player password: ', (password) => {
-                    playersDefault[playerName].password = password;
-                    rl.question('Enter player storage: ', (storage) => {
-                        playersDefault[playerName].storage = storage;
-                        rl.close();
-                        let playersDefaultString = JSON.stringify(playersDefault, null, 2);
-
-                        fs.mkdirSync(currentPath.join(os.homedir(), '.bsc'), { recursive: true });
-
-                        fs.writeFileSync(CONFIG_FILE_PATH, playersDefaultString, (err) => {
-                            if (err) throw err;
-                            console.log('Players config file created');
-                        });
-                    });
-                });
-            });
+        let playersDefault = {};
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
         });
-    });
+
+        const playerName = await new Promise((resolve) => {
+            rl.question('Enter player name: ', resolve);
+        });
+        playersDefault[playerName] = {};
+
+        const ipAddress = await new Promise((resolve) => {
+            rl.question('Enter player IP address: ', resolve);
+        });
+        playersDefault[playerName].ipAddress = ipAddress;
+
+        const username = await new Promise((resolve) => {
+            rl.question('Enter player username: ', resolve);
+        });
+        if (username === '') {
+            playersDefault[playerName].username = 'admin';
+        } else {
+            playersDefault[playerName].username = username;
+        }
+
+        const password = await new Promise((resolve) => {
+            rl.question('Enter player password: ', resolve);
+        });
+        playersDefault[playerName].password = password;
+
+        const storage = await new Promise((resolve) => {
+            rl.question('Enter player storage: ', resolve);
+        });
+        if (username === '') {
+            playersDefault[playerName].storage = 'sd';
+        } else {
+            playersDefault[playerName].storage = storage;
+        }
+        
+        rl.close();
+
+        const playersDefaultString = JSON.stringify(playersDefault, null, 2);
+
+        await fsp.mkdir(currentPath.join(os.homedir(), '.bsc'), { recursive: true });
+        await fsp.writeFile(CONFIG_FILE_PATH, playersDefaultString);
+
+        console.log('Players config file generated successfully');
+
+    } catch (err) {
+        console.error('Error generating players.json, ', err);
+    }
 }
 
 // get player info from players.json
