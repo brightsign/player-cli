@@ -841,11 +841,11 @@ function errorHandler(err) {
     let wrongPWMessage = 'Unexpected token U in JSON at position 4';
 
     if (err.type === wrongPWtype && err.message.slice(-40) == wrongPWMessage) {
-        console.log('Your local password is incorrect, please change it with the "editplayer" command. Example usage: bsc editplayer playerName -p playerPassword');
-        console.log('For more info on your password error, use the checkpw command')
+        console.log('You have encountered an "Unexpected Token in JSON response" error. This is most likely because your local password is incorrect, please check it and, if necessary, change it with the "editplayer" command. Example usage: bsc editplayer playerName -p playerPassword');
+        console.log('For more info on your password, use the checkpw command')
         return "wrongPW";
     } else {
-        console.log('You have encountered an unknown error, please contact the developer and try again');
+        console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.) and if that does not help please contact the developers.');
         console.error(err);
         return "unkownError";
     }
