@@ -9,6 +9,15 @@ const readline = require('readline');
 const fetchDigest = require('digest-fetch');
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
 
+// Define error types
+const errorTypes = {
+    wrongPW: 0,
+    wrongUser: 1,
+    wrongIP: 2,
+    invalidURL: 3,
+    unknownError: 4
+}
+
 // Handle commands
 // edit player
 function editPlayer(argv) {
@@ -540,9 +549,9 @@ async function checkPW(argv) {
 
     } catch (err) {
         let errorType = errorHandler(err);
-        if (errorType == "wrongPW" && (playerData[2] !== '' || playerData[2] !== undefined)) {
+        if (errorType == errorTypes.wrongPW && (playerData[2] !== '' || playerData[2] !== undefined)) {
             console.log('Your local password is wrong. Remember that the default password is the player serial number.');
-        } else if (errorType == "wrongPW" && (playerData[2] == '' || playerData[2] == undefined)) {
+        } else if (errorType == errorTypes.wrongPW && (playerData[2] == '' || playerData[2] == undefined)) {
             console.log('Your local password is not set, however the player has a password set');
         }
     }
@@ -837,17 +846,20 @@ function errorHandler(err) {
 
     // If password is wrong: fetch returns "invalid json response body at <url> reason: Unexpected toekn U in JSON at position 4" with type "invalid-json"
     // BIG CHECK: IS THIS THE ONLY TIME THIS PW TYPE IS RETURNED
-    let wrongPWtype = 'invalid-json';
-    let wrongPWMessage = 'Unexpected token U in JSON at position 4';
+    const wrongPWenum = {
+        type: 'invalid-json',
+        message: 'Unexpected token U in JSON at position 4'
+    }
+    
 
-    if (err.type === wrongPWtype && err.message.slice(-40) == wrongPWMessage) {
+    if (err.type === wrongPWenum.type && err.message.slice(-40) == wrongPWenum.message) {
         console.log('You have encountered an "Unexpected Token in JSON response" error. This is most likely because your local password is incorrect, please check it and, if necessary, change it with the "editplayer" command. Example usage: bsc editplayer playerName -p playerPassword');
         console.log('For more info on your password, use the checkpw command')
-        return "wrongPW";
+        return errorTypes.wrongPW;
     } else {
         console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.) and if that does not help please contact the developers.');
         console.error(err);
-        return "unkownError";
+        return errorTypes.unknownError;
     }
 }
 
