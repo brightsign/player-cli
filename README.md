@@ -49,11 +49,26 @@ bsc listplayers
 
 ## Usage
 
-For a list of commands and their usage, use `bsc --help`.
-
 This CLI uses a player configuration object to interact with your player(s). To configure the CLI to interact with a player, refer to [configuring players locally](#configuring-players-locally). 
 
-A list of commands and their structure can be seen by typing `bsc`, `bsc -h` or `bsc --help`. There's also a table of the currently supported features and their command structure below in the [features](#features) section.
+A list of commands and their structure can be seen by typing `bsc`, `bsc -h` or `bsc --help`. There's also a table of the currently supported features and their command structure below in the [features](#features) section. All commands (except `raw` and `listplayers`) use a 'playerName'. This is the name that you set in players.json. Some commands use 'positionals', or options that must be in a certain spot. These positionals are shown in the 'help' section and on the features table. Positionals listed with <> are required and ones with [] are optional. Certain commands also have options. Options are not defined by position but rather by a tag, for example `bsc editplayer playerName -i newIP`. In that example the new IP address is the option, defined by '-i'. Options can be in whatever order you want. For information on a command and its options, use `bsc command` with no positionals or options. 
+
+## Troubleshooting
+Sometimes you will run into errors while using this CLI. The CLI has built in error handling that should give you information on the error you encountered as well as troubleshooting tips. However, the error handler does not have info on every possible error, so you may run into errors that are not handled. If this is the case, there are certain troubleshooting steps that you can walk through to hopefully fix your problem. 
+
+1. Check that you can communicate with the player
+    1. Is the player on? Is the DWS on?
+    2. Is the player on the same LAN as you?
+    3. When you make a request with the CLI, does it show in the player's logs?
+2. Check your local player info
+    1. Use `bsc listplayers`. Does that info look right?
+    2. Use `bsc checkpw playerName`. This will return information about your local password and the password on the player
+    3. Did you input the correct playerName?
+3. Check the Github issues page
+    1. Maybe others have ran into this before
+4. If none of these work, and your own troubleshooting methods also fail, please open a Github issue and/or a Jira issue (under the PE project, linked to PE-52) with reproduction steps. 
+
+**Note**: We ask that if you encounter an error that is not handled by the error handler (if the error is an API error, the error handler will tell you if it doesn't have info on your error. If it's another type of error, that error will be printed on you command line) that you open a Github issue and report it. This will allow the dev team to implement error handling around your error. 
 
 
 ## Features
@@ -66,7 +81,7 @@ A list of commands and their structure can be seen by typing `bsc`, `bsc -h` or 
 | listPlayers | [x] | List players and their configuration in players.json | bsc listplayers |
 | getdi | [x] | Get device info in the form of a JSON object | bsc getdi \<playerName> | 
 | putfile | [x] | Put file/files on a player. Specify a single file or a directory of files and the upload location (optional). Note that this only works when the player does not have a password set. The location option is exclusively a directory, not the filename it will be stored as | bsc putfile \<playerName> \<File/Directory> [location] |
-| getfiles | [x] | get the files on the player's SD card or in a certain directory | bsc getfiles \<playerName> [path] |
+| getfiles | [x] | get the files on the player's storage or in a certain directory | bsc getfiles \<playerName> [path] |
 | delfile| [x] | Delete a file on the player | bsc delfile \<playerName> \<path> |
 | reboot | [x] | Reboot the specified player | bsc reboot \<playerName> |
 | checkpw | [x] | Check if lDWS password is enabled | bsc checkpw \<playerName> |
