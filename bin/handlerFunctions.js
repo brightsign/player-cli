@@ -15,7 +15,18 @@ const errorTypes = {
     wrongUser: 1,
     wrongIP: 2,
     invalidURL: 3,
-    unknownError: 4
+    unknownError: 4,
+    badRequest: 5,
+    notFound: 6,
+}
+
+class ApiError extends Error {
+    constructor(message, status, contentType) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+        this.contentType = contentType;
+    }
 }
 
 // Handle commands
@@ -93,7 +104,7 @@ async function editReg(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -114,7 +125,7 @@ async function factoryReset(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -165,7 +176,7 @@ async function setTime(argv) {
         console.log('Time set successfully: ' + response.data.result);
     }
     catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -194,7 +205,7 @@ async function getReg(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result.value);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -241,7 +252,7 @@ async function setDWSsub(playerData, rawBody, onOff) {
             console.log('set DWS failed');
         }
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -264,7 +275,7 @@ async function checkDWS(argv) {
             console.log('DWS is disabled')
         }
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -284,7 +295,7 @@ async function getFilesCom(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result.files);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -303,7 +314,7 @@ async function getTime(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -324,7 +335,7 @@ async function deleteFile(argv) {
         console.log(playerPath + ' deleted: ' + response.data.result.success);
     }
     catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -347,7 +358,7 @@ async function getLogs(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -377,7 +388,7 @@ async function handleRawRequest(argv) {
     try {
         let response = await requestFetch(requestOptions, 'admin', targetPasswordRaw);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
     if(rawResponseRaw) {
         console.log(response);
@@ -434,7 +445,7 @@ async function push(argv) {
             let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
             console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
         } catch (err) {
-            errorHandler(err);
+            errorHandler(err,argv);
         }
     } else if (!isFile){
         
@@ -454,7 +465,7 @@ async function push(argv) {
                 let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
                 console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
             } catch (err) {
-                errorHandler(err);
+                errorHandler(err,argv);
             }
         }
     }
@@ -487,7 +498,7 @@ async function changePW(argv) {
         console.log('Password changed (player side): ' + response.data.result.success);
         //console.log(response);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 
     try {
@@ -548,7 +559,7 @@ async function checkPW(argv) {
         }
 
     } catch (err) {
-        let errorType = errorHandler(err);
+        let errorType = errorHandler(err,argv);
         if (errorType == errorTypes.wrongPW && (playerData[2] !== '' || playerData[2] !== undefined)) {
             console.log('Your local password is wrong. Remember that the default password is the player serial number.');
         } else if (errorType == errorTypes.wrongPW && (playerData[2] == '' || playerData[2] == undefined)) {
@@ -578,7 +589,7 @@ async function reboot(argv) {
         //console.log(response);
         console.log('Player rebooted: ' + response.data.result.success);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -657,7 +668,7 @@ async function getDeviceInfo(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -682,7 +693,7 @@ async function screenshot(argv) {
         //console.log(response);
         console.log('Screenshot taken! Location: ' + response.data.result.filename);
     } catch (err) {
-        errorHandler(err);
+        errorHandler(err,argv);
     }
 }
 
@@ -757,26 +768,44 @@ async function pullData(argv) {
 async function requestFetch(requestOptions, user, pass) {
 
     if (pass !== "" && typeof pass !== "undefined") {
-        console.log('Password set, using digest auth')
+        //console.log('Password set, using digest auth')
         //console.log(user);
         if (typeof user === "undefined" || user === "") {
             user = "admin";
         }
         let digestClient = new fetchDigest(user, pass);
         try {  
+            let succReturnContentType = 'application/json; charset=utf-8';
+
             let response = await digestClient.fetch(requestOptions.url, requestOptions);
-            let resData = await response.json();
-        return resData;
+            //console.log(response.headers);
+            
+            if (response.headers.get('content-type') == succReturnContentType) { //indicates successful response -> errors will be returned as plain text
+                let resData = await response.json();
+                return resData;
+            } else {
+                //console.log(response);
+                throw new ApiError('Unexpected content type in response', response.status, response.headers.get('content-type'));
+            }
         } catch (err) {
-            //console.error(err);
+            //console.log(err);
             throw err;
         }
     } else {
-        console.log('No password set, using no auth')
+        //console.log('No password set, using no auth')
         try {
+            let succReturnContentType = 'application/json; charset=utf-8';
+
             let response = await fetch(requestOptions.url, requestOptions);
-            let resData = await response.json();
-            return resData;
+            //console.log(response);
+            //console.log(response.headers.get('content-type'));
+
+            if (response.headers.get('content-type') == succReturnContentType) {
+                let resData = await response.json();
+                return resData;
+            } else {
+                throw new ApiError('Unexpected content type in response', response.status, response.headers.get('content-type'));
+            }
         } catch (err) {
             //console.error(err);
         throw err;
@@ -835,28 +864,48 @@ function checkConfigExists() {
     }
 }
 
-function errorHandler(err) {
-    
+function errorHandler(err,argv) {
+    //console.log(err);
     /*
     if (rawflag) {
         console.error(err);
     }
     */
 
-
+    //console.log(argv._[0]);
     // If password is wrong: fetch returns "invalid json response body at <url> reason: Unexpected toekn U in JSON at position 4" with type "invalid-json"
     // BIG CHECK: IS THIS THE ONLY TIME THIS PW TYPE IS RETURNED
-    const wrongPWenum = {
-        type: 'invalid-json',
-        message: 'Unexpected token U in JSON at position 4'
+    const statusCodes = {
+        badAuth: 401,
+        badRequest: 400,
+        notFound: 404,
+        internalError: 5 //first digit of error status
     }
     
-
-    if (err.type === wrongPWenum.type && err.message.slice(-40) == wrongPWenum.message) {
-        console.log('You have encountered an "Unexpected Token in JSON response" error. This is most likely because your local password is incorrect, please check it and, if necessary, change it with the "editplayer" command. Example usage: bsc editplayer playerName -p playerPassword');
+    if (err.status == statusCodes.badAuth && argv._[0] == 'checkpw') {
+        return errorTypes.wrongPW;
+    } else if (err.status == statusCodes.badAuth && argv._[0] !== 'checkpw') {
+        //console.log(err)
+        console.log('\n');
+        console.log('You have encountered an authorization error. This is most likely because your local password is incorrect, please check it and, if necessary, change it with the "editplayer" command. Example usage: bsc editplayer playerName -p playerPassword');
         console.log('For more info on your password, use the checkpw command')
         return errorTypes.wrongPW;
-    } else {
+    } else if (err.status == statusCodes.badRequest) {
+        //console.log(err)
+        console.log('\n');
+        console.log('A bad request has  been sent. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options.');
+        return errorTypes.badRequest;
+    } else if (err.status == statusCodes.notFound) {
+        //console.log(err)
+        console.log('\n');
+        console.log('What you are looking for could not be found. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options.');
+        return errorTypes.notFound;
+    } else if (parseInt(err.status.toString()[0]) == statusCodes.internalError) {
+        //console.log(err)
+        console.log('\n');
+        console.log('You have encountered a server side error. Check your player\'s connection to the internet and try again. If the problem persists, please open a github issue.');
+    }
+    else {
         console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.) and if that does not help please contact the developers.');
         console.error(err);
         return errorTypes.unknownError;
