@@ -921,25 +921,6 @@ async function requestFetch(requestOptions, user, pass) {
 }
 
 // check if location is directory function
-async function checkDirOld(path) {
-    return new Promise((resolve, reject) => {
-        fs.stat(path, (err, stats) => {
-        if (err) {
-            reject(err);
-        }
-        if (stats.isFile()) {
-            //console.log('file');
-            resolve(true);
-        } else if (stats.isDirectory()) {
-            //console.log('directory');
-            resolve(false);
-        } else {
-            reject(new Error('Provided path is neither file nor directory'));
-        }
-        });
-    });
-}
-
 async function checkDir(path) {
     try {
         const stats = await fsp.stat(path);
@@ -1020,7 +1001,7 @@ function errorHandler(err,argv) {
         console.log('Player name is invalid. Please check your player name and try again. \n', err);
         return errorTypes.badPlayerName;
     } else if (err.type == statusCodes.unreachableType && err.errno == statusCodes.unreachableNo) {
-        console.log('Your player is unreachable. Please check your locally configured IP and your internet access, and try again. \n', err);
+        console.log('Your player is unreachable. Please check your locally configured IP and your/the player\'s internet access, and try again. \n', err);
         return errorTypes.unreachable;
     } else if (err.type = statusCodes.notFound) {
         console.log('The resource you have attempted to interact with could not be found. Please check your inputted command and try again \n', err);
