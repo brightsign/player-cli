@@ -573,7 +573,7 @@ async function changePW(argv) {
 
     let rawBody = JSON.stringify({
         "password": argv.newPassword,
-        "previous_password": playerPW
+        "previous_password": playerData[2]
     });
 
     let requestOptions = {
@@ -603,7 +603,7 @@ async function changePW(argv) {
 
             // add new player
             JSONdata[argv.playerName] = {
-                ipAddress: playerIP,
+                ipAddress: playerData[1],
                 password: argv.newPassword
             }
 
