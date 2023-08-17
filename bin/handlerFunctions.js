@@ -879,7 +879,8 @@ function errorHandler(err,argv) {
         badAuth: 401,
         badRequest: 400,
         notFound: 404,
-        internalError: 5 //first digit of error status
+        internalErrorMin: 500,
+        internalErrorMax: 599
     }
     
     if (err.status == statusCodes.badAuth && argv._[0] == 'checkpw') {
@@ -893,20 +894,20 @@ function errorHandler(err,argv) {
     } else if (err.status == statusCodes.badRequest) {
         //console.log(err)
         console.log('\n');
-        console.log('A bad request has  been sent. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options.');
+        console.log('A bad request has  been sent. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options.', err);
         return errorTypes.badRequest;
     } else if (err.status == statusCodes.notFound) {
         //console.log(err)
         console.log('\n');
         console.log('What you are looking for could not be found. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options.');
         return errorTypes.notFound;
-    } else if (parseInt(err.status.toString()[0]) == statusCodes.internalError) {
+    } else if (parseInt(err.status >= statusCodes.internalErrorMin) && err.status <= statusCodes.internalErrorMax) {
         //console.log(err)
         console.log('\n');
-        console.log('You have encountered a server side error. Check your player\'s connection to the internet and try again. If the problem persists, please open a github issue.');
+        console.log('You have encountered a server side error. If the problem persists, please open a github issue.', err);
     }
     else {
-        console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.) and if that does not help please contact the developers.');
+        console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.) and if that does not help please contact the developers.', err);
         console.error(err);
         return errorTypes.unknownError;
     }
