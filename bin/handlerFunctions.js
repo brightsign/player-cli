@@ -7,6 +7,7 @@ const fetch = require('node-fetch');
 const os = require('os');
 const readline = require('readline');
 const fetchDigest = require('digest-fetch');
+const { error } = require('console');
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
 
 // Define error types
@@ -18,6 +19,7 @@ const errorTypes = {
     unknownError: 4,
     badRequest: 5,
     notFound: 6,
+    badPlayerName: 7,
 }
 
 class ApiError extends Error {
@@ -26,6 +28,14 @@ class ApiError extends Error {
         this.name = 'ApiError';
         this.status = status;
         this.contentType = contentType;
+    }
+}
+
+class playerNameError extends Error {
+    constructor(message, type) {
+        super(message);
+        this.name = 'playerNameError';
+        this.type = type;
     }
 }
 
@@ -86,9 +96,14 @@ function listPlayers() {
 // edit registry function
 async function editReg(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
     // create body
     let rawBody = JSON.stringify({ "value": argv.value });
 
@@ -111,9 +126,14 @@ async function editReg(argv) {
 // factory reset function
 async function factoryReset(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/control/reboot',
@@ -132,8 +152,14 @@ async function factoryReset(argv) {
 // set time function
 async function setTime(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
     let timezone = argv.timezone;
     let setDate = argv.date;
     let setTime = argv.time;
@@ -183,8 +209,14 @@ async function setTime(argv) {
 // get registry function
 async function getReg(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
     let section = argv.section;
     let key = argv.key;
     let requestOptions;
@@ -212,8 +244,14 @@ async function getReg(argv) {
 // set DWS function
 async function setDWS(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
     let onOff = argv.onOff;
     let rawBody;
 
@@ -259,8 +297,14 @@ async function setDWSsub(playerData, rawBody, onOff) {
 // check DWS function
 async function checkDWS(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
@@ -282,8 +326,14 @@ async function checkDWS(argv) {
 // get files func
 async function getFilesCom(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
     let playerPath = argv.path;
 
     let requestOptions = {
@@ -302,8 +352,14 @@ async function getFilesCom(argv) {
 // get time func
 async function getTime(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
@@ -321,8 +377,14 @@ async function getTime(argv) {
 // delete file func
 async function deleteFile(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
     let playerPath = argv.file;
 
     let requestOptions = {
@@ -342,16 +404,18 @@ async function deleteFile(argv) {
 // grab logs function
 async function getLogs(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerIP + '/api/v1/logs',
+        url: 'http://' + playerData[1] + '/api/v1/logs',
     };
 
     try {
@@ -400,16 +464,18 @@ async function handleRawRequest(argv) {
 // put file function
 async function push(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
 
     let requestOptions = {
         method: 'PUT',
-        url: 'http://' + playerIP + '/api/v1/files/sd/' + argv.location,
+        url: 'http://' + playerData[1] + '/api/v1/files/sd/' + argv.location,
     };
 
     // check if file or directory
@@ -474,12 +540,14 @@ async function push(argv) {
 // change password function
 async function changePW(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
 
     let rawBody = JSON.stringify({
         "password": argv.newPassword,
@@ -536,8 +604,14 @@ async function changePW(argv) {
 async function checkPW(argv) {
 
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
@@ -572,16 +646,18 @@ async function checkPW(argv) {
 async function reboot(argv) {
 
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
 
     let requestOptions = {
         method: 'PUT',
-        url: 'http://' + playerIP + '/api/v1/control/reboot',
+        url: 'http://' + playerData[1] + '/api/v1/control/reboot',
     };
 
     try {
@@ -651,18 +727,19 @@ function removePlayer(argv) {
 
 // get device info function
 async function getDeviceInfo(argv) {
-
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerIP + '/api/v1/info',
+        url: 'http://' + playerData[1] + '/api/v1/info',
     };
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
@@ -676,16 +753,18 @@ async function getDeviceInfo(argv) {
 async function screenshot(argv) {
 
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err,null);
+        return;
+    }
 
     let requestOptions = {
         method: 'POST',
-        url: 'http://' + playerIP + '/api/v1/snapshot',
+        url: 'http://' + playerData[1] + '/api/v1/snapshot',
     };
 
     try {
@@ -756,12 +835,16 @@ async function pullData(argv) {
 
     const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
 
-    let playerUser = players[argv.playerName].username;
-    let playerIP = players[argv.playerName].ipAddress;
-    let playerPW = players[argv.playerName].password;
+    if (typeof players[argv.playerName] === "undefined") {
+        throw new playerNameError('Player not found', errorTypes.badPlayerName);
+    } else {
+        let playerUser = players[argv.playerName].username;
+        let playerIP = players[argv.playerName].ipAddress;
+        let playerPW = players[argv.playerName].password;
 
-    let returnArr = [playerUser, playerIP, playerPW];
-    return returnArr;
+        let returnArr = [playerUser, playerIP, playerPW];
+        return returnArr;
+    }
 }
 
 // request fetch function
@@ -888,23 +971,26 @@ function errorHandler(err,argv) {
     } else if (err.status == statusCodes.badAuth && argv._[0] !== 'checkpw') {
         //console.log(err)
         console.log('\n');
-        console.log('You have encountered an authorization error. This is most likely because your local password is incorrect, please check it and, if necessary, change it with the "editplayer" command. Example usage: bsc editplayer playerName -p playerPassword');
+        console.log('You have encountered an authorization error. This is most likely because your local password is incorrect, please check it and, if necessary, change it with the "editplayer" command. Example usage: bsc editplayer playerName -p playerPassword \n', err);
         console.log('For more info on your password, use the checkpw command')
         return errorTypes.wrongPW;
     } else if (err.status == statusCodes.badRequest) {
         //console.log(err)
         console.log('\n');
-        console.log('A bad request has  been sent. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options.', err);
+        console.log('A bad request has  been sent. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options. \n', err);
         return errorTypes.badRequest;
     } else if (err.status == statusCodes.notFound) {
         //console.log(err)
         console.log('\n');
-        console.log('What you are looking for could not be found. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options.');
+        console.log('What you are looking for could not be found. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options. \n', err);
         return errorTypes.notFound;
-    } else if (parseInt(err.status >= statusCodes.internalErrorMin) && err.status <= statusCodes.internalErrorMax) {
+    } else if (err.status >= statusCodes.internalErrorMin && err.status <= statusCodes.internalErrorMax) {
         //console.log(err)
         console.log('\n');
         console.log('You have encountered a server side error. If the problem persists, please open a github issue.', err);
+    } else if (err.type == errorTypes.badPlayerName) {
+        console.log('Player name is invalid. Please check your player name and try again. \n', err);
+        return errorTypes.badPlayerName;
     }
     else {
         console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.) and if that does not help please contact the developers.', err);
