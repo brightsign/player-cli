@@ -104,7 +104,7 @@ async function editReg(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -125,7 +125,7 @@ async function factoryReset(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -176,7 +176,7 @@ async function setTime(argv) {
         console.log('Time set successfully: ' + response.data.result);
     }
     catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -205,7 +205,7 @@ async function getReg(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result.value);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -252,7 +252,7 @@ async function setDWSsub(playerData, rawBody, onOff) {
             console.log('set DWS failed');
         }
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -275,7 +275,7 @@ async function checkDWS(argv) {
             console.log('DWS is disabled')
         }
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -295,7 +295,7 @@ async function getFilesCom(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result.files);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -314,7 +314,7 @@ async function getTime(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -335,7 +335,7 @@ async function deleteFile(argv) {
         console.log(playerPath + ' deleted: ' + response.data.result.success);
     }
     catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -358,7 +358,7 @@ async function getLogs(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -388,7 +388,7 @@ async function handleRawRequest(argv) {
     try {
         let response = await requestFetch(requestOptions, 'admin', targetPasswordRaw);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
     if(rawResponseRaw) {
         console.log(response);
@@ -445,7 +445,7 @@ async function push(argv) {
             let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
             console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
         } catch (err) {
-            errorHandler(err,argv);
+            errorHandler(err,null);
         }
     } else if (!isFile){
         
@@ -465,7 +465,7 @@ async function push(argv) {
                 let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
                 console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
             } catch (err) {
-                errorHandler(err,argv);
+                errorHandler(err,null);
             }
         }
     }
@@ -498,7 +498,7 @@ async function changePW(argv) {
         console.log('Password changed (player side): ' + response.data.result.success);
         //console.log(response);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 
     try {
@@ -589,7 +589,7 @@ async function reboot(argv) {
         //console.log(response);
         console.log('Player rebooted: ' + response.data.result.success);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -668,7 +668,7 @@ async function getDeviceInfo(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
@@ -693,7 +693,7 @@ async function screenshot(argv) {
         //console.log(response);
         console.log('Screenshot taken! Location: ' + response.data.result.filename);
     } catch (err) {
-        errorHandler(err,argv);
+        errorHandler(err,null);
     }
 }
 
