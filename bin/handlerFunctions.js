@@ -23,6 +23,16 @@ const errorTypes = {
     unreachable: 8,
 }
 
+const statusCodes = {
+    badAuth: 401,
+    badRequest: 400,
+    notFound: 404,
+    internalErrorMin: 500,
+    internalErrorMax: 599,
+    unreachableType: 'system',
+    unreachableNo: 'EHOSTUNREACH',
+}
+
 class ApiError extends Error {
     constructor(message, status, contentType) {
         super(message);
@@ -36,6 +46,14 @@ class playerNameError extends Error {
     constructor(message, type) {
         super(message);
         this.name = 'playerNameError';
+        this.type = type;
+    }
+}
+
+class notFoundError extends Error {
+    constructor(message, type) {
+        super(message);
+        this.name = 'ResourceNotFoundError';
         this.type = type;
     }
 }
@@ -484,18 +502,21 @@ async function push(argv) {
     let absPath = currentPath.resolve(path);
     let isFile;
 
-    isFile = await checkDir(path);
-    //console.log(isFile);
-
+    try {
+        isFile = await checkDir(path);
+    } catch (err) {
+        errorHandler(err,null);
+    }
+    
     let files = [];
-    if(!isFile) {
+    if(!isFile && typeof isFile === 'boolean') {
         console.log('getting files...');
         try {
-        files = await getFiles(path);
+            files = await getFiles(path);
         }
         catch (err) {
-        console.log('Error getting files from directory!');
-        console.error(err);
+            console.log('Error getting files from directory!');
+            console.error(err);
         }
     }
 
@@ -851,6 +872,8 @@ async function pullData(argv) {
 // request fetch function
 async function requestFetch(requestOptions, user, pass) {
 
+    let succReturnContentType = 'application/json; charset=utf-8';
+
     if (pass !== "" && typeof pass !== "undefined") {
         //console.log('Password set, using digest auth')
         //console.log(user);
@@ -858,16 +881,15 @@ async function requestFetch(requestOptions, user, pass) {
             user = "admin";
         }
         let digestClient = new fetchDigest(user, pass);
-        try {  
-            let succReturnContentType = 'application/json; charset=utf-8';
-
+        try {
             let response = await digestClient.fetch(requestOptions.url, requestOptions);
             //console.log(response.headers);
             
             if (response.headers.get('content-type') == succReturnContentType) { //indicates successful response -> errors will be returned as plain text
                 let resData = await response.json();
                 return resData;
-            } else {
+            } 
+            else {
                 //console.log(response);
                 throw new ApiError('Unexpected content type in response', response.status, response.headers.get('content-type'));
             }
@@ -878,17 +900,18 @@ async function requestFetch(requestOptions, user, pass) {
     } else {
         //console.log('No password set, using no auth')
         try {
-            let succReturnContentType = 'application/json; charset=utf-8';
-
             let response = await fetch(requestOptions.url, requestOptions);
             //console.log(response.headers);
             //console.log(response.headers.get('content-type'));
 
-            if (response.headers.get('content-type') == succReturnContentType) {
+            if (response.headers.get('content-type') == succReturnContentType && (response.status  < 299)) {
                 let resData = await response.json();
                 return resData;
-            } else {
-                throw new ApiError('Unexpected content type in response', response.status, response.headers.get('content-type'));
+            } else if (response.status == statusCodes.notFound) {
+                throw new notFoundError('Resource not Found', response.status);
+            }
+            else {
+                throw new ApiError('Response Error', response.status, response.headers.get('content-type'));
             }
         } catch (err) {
             //console.error(err);
@@ -898,7 +921,7 @@ async function requestFetch(requestOptions, user, pass) {
 }
 
 // check if location is directory function
-async function checkDir(path) {
+async function checkDirOld(path) {
     return new Promise((resolve, reject) => {
         fs.stat(path, (err, stats) => {
         if (err) {
@@ -915,6 +938,21 @@ async function checkDir(path) {
         }
         });
     });
+}
+
+async function checkDir(path) {
+    try {
+        const stats = await fsp.stat(path);
+        if (stats.isFile()) {
+            return true;
+        } else if (stats.isDirectory()) {
+            return false;
+        } else {
+            throw new Error('Provided path is neither file nor directory');
+        }
+    } catch (err) {
+        throw err;
+    }
 }
 
 // get files in directory function
@@ -955,16 +993,6 @@ function errorHandler(err,argv) {
         console.error(err);
     }
     */
-
-    const statusCodes = {
-        badAuth: 401,
-        badRequest: 400,
-        notFound: 404,
-        internalErrorMin: 500,
-        internalErrorMax: 599,
-        unreachableType: 'system',
-        unreachableNo: 'EHOSTUNREACH',
-    }
     
     if (err.status == statusCodes.badAuth && argv._[0] == 'checkpw') {
         return errorTypes.wrongPW;
@@ -994,6 +1022,9 @@ function errorHandler(err,argv) {
     } else if (err.type == statusCodes.unreachableType && err.errno == statusCodes.unreachableNo) {
         console.log('Your player is unreachable. Please check your locally configured IP and your internet access, and try again. \n', err);
         return errorTypes.unreachable;
+    } else if (err.type = statusCodes.notFound) {
+        console.log('The resource you have attempted to interact with could not be found. Please check your inputted command and try again \n', err);
+        return errorTypes.notFound;
     }
     else {
         console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.) and if that does not help please contact the developers.');
