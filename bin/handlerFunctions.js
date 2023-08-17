@@ -20,6 +20,7 @@ const errorTypes = {
     badRequest: 5,
     notFound: 6,
     badPlayerName: 7,
+    unreachable: 8,
 }
 
 class ApiError extends Error {
@@ -880,7 +881,7 @@ async function requestFetch(requestOptions, user, pass) {
             let succReturnContentType = 'application/json; charset=utf-8';
 
             let response = await fetch(requestOptions.url, requestOptions);
-            //console.log(response);
+            //console.log(response.headers);
             //console.log(response.headers.get('content-type'));
 
             if (response.headers.get('content-type') == succReturnContentType) {
@@ -891,7 +892,7 @@ async function requestFetch(requestOptions, user, pass) {
             }
         } catch (err) {
             //console.error(err);
-        throw err;
+            throw err;
         }
     }
 }
@@ -955,15 +956,14 @@ function errorHandler(err,argv) {
     }
     */
 
-    //console.log(argv._[0]);
-    // If password is wrong: fetch returns "invalid json response body at <url> reason: Unexpected toekn U in JSON at position 4" with type "invalid-json"
-    // BIG CHECK: IS THIS THE ONLY TIME THIS PW TYPE IS RETURNED
     const statusCodes = {
         badAuth: 401,
         badRequest: 400,
         notFound: 404,
         internalErrorMin: 500,
-        internalErrorMax: 599
+        internalErrorMax: 599,
+        unreachableType: 'system',
+        unreachableNo: 'EHOSTUNREACH',
     }
     
     if (err.status == statusCodes.badAuth && argv._[0] == 'checkpw') {
@@ -991,9 +991,12 @@ function errorHandler(err,argv) {
     } else if (err.type == errorTypes.badPlayerName) {
         console.log('Player name is invalid. Please check your player name and try again. \n', err);
         return errorTypes.badPlayerName;
+    } else if (err.type == statusCodes.unreachableType && err.errno == statusCodes.unreachableNo) {
+        console.log('Your player is unreachable. Please check your locally configured IP and your internet access, and try again. \n', err);
+        return errorTypes.unreachable;
     }
     else {
-        console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.) and if that does not help please contact the developers.', err);
+        console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.) and if that does not help please contact the developers.');
         console.error(err);
         return errorTypes.unknownError;
     }
