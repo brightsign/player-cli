@@ -710,8 +710,9 @@ function confirmDangerousCommand(prompt, callback) {
 
 // generate players.json file if it doesn't exist
 async function generatePlayersJson() {
+    let fileExists = await fsp.access(CONFIG_FILE_PATH).then(() => true).catch(() => false);
     try {
-        if (await fsp.access(CONFIG_FILE_PATH).catch(() => false)) {
+        if (fileExists === true) {
             //console.log('Players config file already exists');
             return;
         }
@@ -722,41 +723,70 @@ async function generatePlayersJson() {
             output: process.stdout
         });
 
-        const playerName = await new Promise((resolve) => {
-            rl.question('Enter player name: ', resolve);
-        });
-        playersDefault[playerName] = {};
+        const getPlayerName = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player name: ', resolve);
+            });
+        };
+        const getPlayerIP = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player IP address: ', resolve);
+            });
+        };
+        const getUsername = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player username: ', resolve);
+            });
+        };
+        const getPassword = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player password: ', resolve);
+            });
+        };
+        const getStorage = () => {
+            return new Promise((resolve) => {
+                rl.question('Enter player storage type: ', resolve);
+            });
+        };
 
-        const ipAddress = await new Promise((resolve) => {
-            rl.question('Enter player IP address: ', resolve);
-        });
-        playersDefault[playerName].ipAddress = ipAddress;
-
-        const username = await new Promise((resolve) => {
-            rl.question('Enter player username: ', resolve);
-        });
-        if (username === '') {
-            playersDefault[playerName].username = 'admin';
-        } else {
-            playersDefault[playerName].username = username;
-        }
-
-        const password = await new Promise((resolve) => {
-            rl.question('Enter player password: ', resolve);
-        });
-        playersDefault[playerName].password = password;
-
-        const storage = await new Promise((resolve) => {
-            rl.question('Enter player storage: ', resolve);
-        });
-        if (username === '') {
-            playersDefault[playerName].storage = 'sd';
-        } else {
-            playersDefault[playerName].storage = storage;
-        }
-        
-        rl.close();
-
+        await getPlayerName()
+            .then((playerName) => {
+                playersDefault[playerName] = {};
+                return getPlayerIP();
+            })
+            .then((ipAddress) => {
+                const playerName = Object.keys(playersDefault)[0];
+                playersDefault[playerName].ipAddress = ipAddress;
+                return getUsername();
+            })
+            .then((username) => {
+                const playerName = Object.keys(playersDefault)[0];
+                if (username === '') {
+                    playersDefault[playerName].username = 'admin';
+                } else {
+                    playersDefault[playerName].username = username;
+                }
+                return getPassword();
+            })
+            .then((password) => {
+                const playerName = Object.keys(playersDefault)[0];
+                playersDefault[playerName].password = password;
+                return getStorage();
+            })
+            .then((storage) => {
+                const playerName = Object.keys(playersDefault)[0];
+                if (storage === '') {
+                    playersDefault[playerName].storage = 'sd';
+                } else {
+                    playersDefault[playerName].storage = storage;
+                }
+                rl.close();
+                console.log(playersDefault);
+            })
+            .catch((error) => {
+                console.error(error);
+                rl.close();
+            });
         const playersDefaultString = JSON.stringify(playersDefault, null, 2);
 
         await fsp.mkdir(currentPath.join(os.homedir(), '.bsc'), { recursive: true });
