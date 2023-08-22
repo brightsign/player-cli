@@ -7,7 +7,47 @@ const fetch = require('node-fetch');
 const os = require('os');
 const readline = require('readline');
 const fetchDigest = require('digest-fetch');
+const statusCodes = require('http-status');
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
+
+// Define error types
+const errorTypes = {
+    wrongPW: 0,
+    wrongUser: 1,
+    wrongIP: 2,
+    invalidURL: 3,
+    unknownError: 4,
+    badRequest: 5,
+    notFound: 6,
+    badPlayerName: 7,
+    unreachable: 8,
+}
+
+const miscErrorInfo = {
+    internalErrorMin: 500,
+    internalErrorMax: 599,
+    successMin: 200,
+    successMax: 299,
+    unreachableType: 'system',
+    unreachableNo: 'EHOSTUNREACH',
+}
+
+class ApiError extends Error {
+    constructor(message, status, contentType) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+        this.contentType = contentType;
+    }
+}
+
+class playerNameError extends Error {
+    constructor(message, type) {
+        super(message);
+        this.name = 'playerNameError';
+        this.type = type;
+    }
+}
 
 // Handle commands
 // edit player
@@ -66,9 +106,14 @@ function listPlayers() {
 // edit registry function
 async function editReg(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
     // create body
     let rawBody = JSON.stringify({ "value": argv.value });
 
@@ -84,16 +129,21 @@ async function editReg(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
 // factory reset function
 async function factoryReset(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/control/reboot',
@@ -105,15 +155,21 @@ async function factoryReset(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
 // set time function
 async function setTime(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
     let timezone = argv.timezone;
     let setDate = argv.date;
     let setTime = argv.time;
@@ -155,16 +211,22 @@ async function setTime(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log('Time set successfully: ' + response.data.result);
     }
-    catch (error) {
-        console.log(error);
+    catch (err) {
+        errorHandler(err);
     }
 }
 
 // get registry function
 async function getReg(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
     let section = argv.section;
     let key = argv.key;
     let requestOptions;
@@ -184,16 +246,22 @@ async function getReg(argv) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result.value);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
 // set DWS function
 async function setDWS(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
     let onOff = argv.onOff;
     let rawBody;
 
@@ -231,16 +299,22 @@ async function setDWSsub(playerData, rawBody, onOff) {
         } else {
             console.log('set DWS failed');
         }
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
 // check DWS function
 async function checkDWS(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
@@ -254,16 +328,22 @@ async function checkDWS(argv) {
         } else {
             console.log('DWS is disabled')
         }
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
 // get files func
 async function getFilesCom(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
     let playerPath = argv.path;
 
     let requestOptions = {
@@ -274,16 +354,22 @@ async function getFilesCom(argv) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result.files);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
 // get time func
 async function getTime(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
@@ -293,16 +379,22 @@ async function getTime(argv) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
 // delete file func
 async function deleteFile(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
     let playerPath = argv.file;
 
     let requestOptions = {
@@ -314,31 +406,33 @@ async function deleteFile(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(playerPath + ' deleted: ' + response.data.result.success);
     }
-    catch (error) {
-        console.log(error);
+    catch (err) {
+        errorHandler(err);
     }
 }
 
 // grab logs function
 async function getLogs(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerIP + '/api/v1/logs',
+        url: 'http://' + playerData[1] + '/api/v1/logs',
     };
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
 }
 
@@ -367,8 +461,8 @@ async function handleRawRequest(argv) {
 
     try {
         let response = await requestFetch(requestOptions, 'admin', targetPasswordRaw);
-    } catch (error) {
-        console.log(error);
+    } catch (err) {
+        errorHandler(err);
     }
     if(rawResponseRaw) {
         console.log(response);
@@ -380,16 +474,18 @@ async function handleRawRequest(argv) {
 // put file function
 async function push(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
 
     let requestOptions = {
         method: 'PUT',
-        url: 'http://' + playerIP + '/api/v1/files/sd/' + argv.location,
+        url: 'http://' + playerData[1] + '/api/v1/files/sd/' + argv.location,
     };
 
     // check if file or directory
@@ -397,22 +493,13 @@ async function push(argv) {
     let absPath = currentPath.resolve(path);
     let isFile;
 
-    isFile = await checkDir(path);
-    //console.log(isFile);
-
-    let files = [];
-    if(!isFile) {
-        console.log('getting files...');
-        try {
-        files = await getFiles(path);
-        }
-        catch (err) {
-        console.log('Error getting files from directory!');
-        console.log(err);
-        }
+    try {
+        isFile = await checkDir(path);
+    } catch (err) {
+        errorHandler(err);
     }
 
-    if (isFile) {
+    if (isFile === true) {
         // if file, push file
         console.log('pushing file: ' + absPath);
 
@@ -425,10 +512,18 @@ async function push(argv) {
             let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
             console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
         } catch (err) {
-            console.log(err);
+            errorHandler(err);
         }
-    } else if (!isFile){
+    } else if (isFile === false){
         
+        console.log('getting files...');
+        try {
+            files = await getFiles(path);
+        } catch (err) {
+            console.log('Error getting files from directory!');
+            console.error(err);
+        }
+
         // if directory, push directory
         //console.log('pushing directory'); 
         for (i = 0; i < files.length; i++) {
@@ -445,7 +540,7 @@ async function push(argv) {
                 let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
                 console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
             } catch (err) {
-                console.log(err);
+                errorHandler(err);
             }
         }
     }
@@ -454,16 +549,18 @@ async function push(argv) {
 // change password function
 async function changePW(argv) {
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
 
     let rawBody = JSON.stringify({
         "password": argv.newPassword,
-        "previous_password": playerPW
+        "previous_password": playerData[2]
     });
 
     let requestOptions = {
@@ -478,7 +575,7 @@ async function changePW(argv) {
         console.log('Password changed (player side): ' + response.data.result.success);
         //console.log(response);
     } catch (err) {
-        console.log('Error changing password on player: ', err);
+        errorHandler(err);
     }
 
     try {
@@ -493,7 +590,7 @@ async function changePW(argv) {
 
             // add new player
             JSONdata[argv.playerName] = {
-                ipAddress: playerIP,
+                ipAddress: playerData[1],
                 password: argv.newPassword
             }
 
@@ -516,34 +613,18 @@ async function changePW(argv) {
 async function checkPW(argv) {
 
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    // For next version:
-    // If password is set on player and not locally, this will return an error from requestFetch
-    // that should be handled within this function -> if certain error, then password is set on player
-    // so: 
-    /*
-        1. find out what error is returned when password is set on player and is not set, or set wrong, locally
-        a. call that error "authError", return as a boolean that is true if error is authError
-        2. if that error, then password is set on player and wrong/null locally
-        3. if that error AND password is set locally, then local password is wrong
-        a. if (authError && players[argv.playername].password !== '') -> password is wrong
-        4. if that error AND password not set locally -> must either turn player password off or set a password locally
-        a. if (authError && players[argv.playername].password == '') -> password is not set locally
-        5. if no error AND return object says password is blank (true), then password is not set on player
-        a. if (!authErro && response.data.result.password.isBlank) -> password is not set on player
-        6. if no error AND return object says password is not blank (false), then password is set on player and correct locally
-        a. if (!authError && !response.data.result.password.isBlank) -> password is set on player and correct locally
-    */
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerIP + '/api/v1/control/dws-password',
+        url: 'http://' + playerData[1] + '/api/v1/control/dws-password',
     };
 
     try {
@@ -552,8 +633,21 @@ async function checkPW(argv) {
         //console.log(response.data.result.password);
         //console.log('Player has password set: ' + response.data.result.password.);
         console.log('Password is blank: ' + response.data.result.password.isBlank);
+        if (response.data.result.password.isBlank && (playerData[2] == '' || playerData[2] == undefined)) {
+            console.log('No password set locally, no password on player, you are good to go!')
+        } else if (!response.data.result.password.isBlank && (playerData[2] !== '' || playerData[2] !== undefined)) {
+            console.log('Password is set on the player, and your local password is set correctly, you are good to go!')
+        } else if (response.data.result.password.isBlank && (playerData[2] !== '' || playerData[2] !== undefined)) {
+            console.log('Password is not set on the player, but you have a password set locally. This will continue to work, but consider changing your password locally to be blank.')
+        }
+
     } catch (err) {
-        console.log(err);
+        let errorType = checkpwErrorHandler(err);
+        if (errorType == errorTypes.wrongPW && (playerData[2] !== '' || playerData[2] !== undefined)) {
+            console.log('Your local password is wrong. Remember that the default password is the player serial number.');
+        } else if (errorType == errorTypes.wrongPW && (playerData[2] == '' || playerData[2] == undefined)) {
+            console.log('Your local password is not set, however the player has a password set');
+        }
     }
 }
 
@@ -561,16 +655,18 @@ async function checkPW(argv) {
 async function reboot(argv) {
 
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
 
     let requestOptions = {
         method: 'PUT',
-        url: 'http://' + playerIP + '/api/v1/control/reboot',
+        url: 'http://' + playerData[1] + '/api/v1/control/reboot',
     };
 
     try {
@@ -578,7 +674,7 @@ async function reboot(argv) {
         //console.log(response);
         console.log('Player rebooted: ' + response.data.result.success);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
@@ -640,24 +736,25 @@ function removePlayer(argv) {
 
 // get device info function
 async function getDeviceInfo(argv) {
-
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
 
     let requestOptions = {
         method: 'GET',
-        url: 'http://' + playerIP + '/api/v1/info',
+        url: 'http://' + playerData[1] + '/api/v1/info',
     };
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         console.log(response.data.result);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
@@ -665,16 +762,18 @@ async function getDeviceInfo(argv) {
 async function screenshot(argv) {
 
     // get player data from argv
-    let playerData = await pullData(argv);
-    // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-
-    let playerUser = playerData[0];
-    let playerIP = playerData[1];
-    let playerPW = playerData[2];
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
 
     let requestOptions = {
         method: 'POST',
-        url: 'http://' + playerIP + '/api/v1/snapshot',
+        url: 'http://' + playerData[1] + '/api/v1/snapshot',
     };
 
     try {
@@ -682,7 +781,7 @@ async function screenshot(argv) {
         //console.log(response);
         console.log('Screenshot taken! Location: ' + response.data.result.filename);
     } catch (err) {
-        console.log(err);
+        errorHandler(err);
     }
 }
 
@@ -745,63 +844,85 @@ async function pullData(argv) {
 
     const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
 
-    let playerUser = players[argv.playerName].username;
-    let playerIP = players[argv.playerName].ipAddress;
-    let playerPW = players[argv.playerName].password;
+    if (typeof players[argv.playerName] === "undefined") {
+        throw new playerNameError('Player not found', errorTypes.badPlayerName);
+    } else {
+        let playerUser = players[argv.playerName].username;
+        let playerIP = players[argv.playerName].ipAddress;
+        let playerPW = players[argv.playerName].password;
 
-    let returnArr = [playerUser, playerIP, playerPW];
-    return returnArr;
+        let returnArr = [playerUser, playerIP, playerPW];
+        return returnArr;
+    }
 }
 
 // request fetch function
 async function requestFetch(requestOptions, user, pass) {
+    let succReturnContentType = 'application/json; charset=utf-8';
 
-    if (pass !== "" && typeof pass !== "undefined") {
-        console.log('Password set, using digest auth')
-        //console.log(user);
-        if (typeof user === "undefined" || user === "") {
-            user = "admin";
-        }
-        let digestClient = new fetchDigest(user, pass);
-        try {  
+    try {
+        if (pass !== "" && typeof pass !== "undefined") {
+            //console.log('Password set, using digest auth')
+            //console.log(user);
+            if (typeof user === "undefined" || user === "") {
+                user = "admin";
+            }
+            let digestClient = new fetchDigest(user, pass);
             let response = await digestClient.fetch(requestOptions.url, requestOptions);
-            let resData = await response.json();
-        return resData;
-        } catch (err) {
-            //console.error(err);
-            throw err;
-        }
-    } else {
-        console.log('No password set, using no auth')
-        try {
+            //console.log(response.headers);
+            
+            if (response.headers.get('content-type') == succReturnContentType) { //indicates successful response -> errors will be returned as plain text
+                if (response.status >= miscErrorInfo.successMin && response.status <= miscErrorInfo.successMax) {
+                    let resData = await response.json();
+                    return resData;
+                } else {
+                    throw new ApiError('Response Error', response.status, response.headers.get('content-type'));
+                } 
+            } 
+            else {
+                //console.log(response);
+                throw new ApiError('Unexpected content type in response', response.status, response.headers.get('content-type'));
+            }
+            
+        } else {
+            //console.log('No password set, using no auth')
+            
             let response = await fetch(requestOptions.url, requestOptions);
-            let resData = await response.json();
-            return resData;
-        } catch (err) {
-            //console.error(err);
-        throw err;
+            //console.log(response.headers);
+            //console.log(response.headers.get('content-type'));
+
+            if (response.headers.get('content-type') == succReturnContentType) { //indicates successful response -> errors will be returned as plain text
+                if (response.status >= miscErrorInfo.successMin && response.status <= miscErrorInfo.successMax) {
+                    let resData = await response.json();
+                    return resData;
+                } else {
+                    throw new ApiError('Response Error', response.status, response.headers.get('content-type'));
+                } 
+            } 
+            else {
+                //console.log(response);
+                throw new ApiError('Unexpected content type in response', response.status, response.headers.get('content-type'));
+            }
         }
+    } catch (err) {
+        throw err;
     }
 }
 
 // check if location is directory function
 async function checkDir(path) {
-    return new Promise((resolve, reject) => {
-        fs.stat(path, (err, stats) => {
-        if (err) {
-            reject(err);
-        }
+    try {
+        const stats = await fsp.stat(path);
         if (stats.isFile()) {
-            //console.log('file');
-            resolve(true);
+            return true;
         } else if (stats.isDirectory()) {
-            //console.log('directory');
-            resolve(false);
+            return false;
         } else {
-            reject(new Error('Provided path is neither file nor directory'));
+            throw new Error('Provided path is neither file nor directory');
         }
-        });
-    });
+    } catch (err) {
+        throw err;
+    }
 }
 
 // get files in directory function
@@ -818,7 +939,6 @@ async function getFiles(path) {
         }
         return filesArr;
     } catch (err) {
-        console.error(err);
         throw err;
     }
 }
@@ -833,6 +953,59 @@ function checkConfigExists() {
     } else {
         exists = true;
         return exists;
+    }
+}
+
+function errorHandler(err) {
+    //console.log(err);
+    /*
+    if (rawflag) {
+        console.error(err);
+    }
+    */
+    if (err.status == statusCodes.UNAUTHORIZED) {
+        //console.log(err)
+        console.log('\n');
+        //console.log('You have encountered an authorization error. This is most likely because your local password is incorrect, please check it and, if necessary, change it with the "editplayer" command. Example usage: bsc editplayer playerName -p playerPassword \n', err);
+        //console.log('For more info on your password, use the checkpw command')
+        console.log('Bad Auth: ', err);
+    } else if (err.status == statusCodes.BAD_REQUEST) {
+        //console.log(err)
+        console.log('\n');
+        //console.log('A bad request has  been sent. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options. \n', err);
+        console.log('Bad Request: ', err);
+    } else if (err.status == statusCodes.NOT_FOUND) {
+        //console.log(err)
+        console.log('\n');
+        //console.log('What you are looking for could not be found. If you are not using the "raw" command, please open a github issue. If you are using "raw", please check your request options. \n', err);
+        console.log('Not Found: ', err);
+    } else if (err.status >= miscErrorInfo.internalErrorMin && err.status <= miscErrorInfo.internalErrorMax) {
+        //console.log(err)
+        console.log('\n');
+        //console.log('You have encountered a server side error. If the problem persists, please open a github issue.', err);
+        console.log('Internal Server Error: ', err);
+    } else if (err.type == errorTypes.badPlayerName) {
+        console.log('Player name is invalid. Please check your player name and try again. \n', err);
+    } else if (err.type == statusCodes.unreachableType && err.errno == statusCodes.unreachableNo) {
+        //console.log('Your player is unreachable. Please check your locally configured IP and your/the player\'s internet access, and try again. \n', err);
+        console.log('Unreachable: ', err);
+    } else if (err.type = statusCodes.NOT_FOUND) {
+        //console.log('The resource you have attempted to interact with could not be found.\n', err);
+        console.log('Not Found: ', err);
+    }
+    else {
+        console.log('You have encountered an unknown error, please troubleshoot your issue (check player information locally, check if DWS is on, check if player is connected to internet, etc.)');
+        console.error(err);
+    }
+}
+
+// checkpw error handler
+function checkpwErrorHandler(err) {
+    if (err.status = statusCodes.UNAUTHORIZED) {
+        return errorTypes.wrongPW;
+    } else {
+        console.log('Unknown error, please try again');
+        return errorTypes.unknownError;
     }
 }
 
