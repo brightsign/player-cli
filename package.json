@@ -9,7 +9,7 @@
   "bin": {
     "bsc": "./bin/index.js"
   },
-  "author": "",
+  "author": "Primary: Luca Herlein, Secondary: Ben Hastings, Supported by BrightSign LLC Partner Engineering Team",
   "license": "ISC",
   "dependencies": {
     "digest-fetch": "^2.0.3",
