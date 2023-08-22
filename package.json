@@ -9,7 +9,7 @@
   "bin": {
     "bsc": "./bin/index.js"
   },
-  "author": "",
+  "author": "support@brightsign.biz",
   "license": "ISC",
   "dependencies": {
     "digest-fetch": "^2.0.3",
