@@ -1,71 +1,100 @@
 #!/usr/bin/env node
-
 const yargs = require('yargs');
-const AxiosDigestAuth = require('@mhoc/axios-digest-auth').default;
+const handlers = require('./handlerFunctions.js');
+const positionals = require('./positionalFunctions.js');
 
-// Set up CLI
-const options = yargs
-  .usage('Usage: bsc -i <targetIp> -p <targetPassword> -m <reqMethod> -r <reqRoute>')
-  .usage('')
-  .usage('       Examples:')
-  .usage('       bsc -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="/info"')
-  .usage('       bsc -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="/files/sd"')
-  .option('i', { alias: 'targetIp', describe: 'IP Address of Target Player', type: 'string', demandOption: true })
-  .option('p', { alias: 'targetPassword', describe: 'Password of Target Player', type: 'string', demandOption: false })
-  .option('m', { alias: 'reqMethod', describe: 'Request method type', type: 'string', demandOption: true })
-  .option('r', { alias: 'reqRoutes', describe: 'Request url route', type: 'string', demandOption: true })
-  .option('a', { alias: 'raw', describe: 'Raw HTTP REST Response', type: 'boolean', demandOption: false })
-  // .option('s', { alias: 'dest', describe: 'Target Destination. e.g., sd/myfolder/', type: 'string', demandOption: false })
-  // .option('f', { alias: 'file', describe: 'File name or source file path to upload to target player', type: 'string', demandOption: true })
-  .argv;
+// set up commands
+yargs.scriptName('bsc');
+yargs.usage('Built-in command usage: $0 <command> [options]');
+yargs.help();
+yargs.alias('h', 'help');
 
-// CLI Arguments
-let ipAddress = options.i;
-let targetPassword = options.p;
-let requestMethod = options.m;
-let requestRoute = options.r;
-let rawResponse = options.a;
+// give examples of raw usage
+yargs.usage('Raw usage: bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawResponse]');
+yargs.usage('');
+yargs.usage('       Raw Request Examples:');
+yargs.usage('       bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"');
+yargs.usage('       bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"');
 
-// PUT e.g., /files/sd + file blob. 
-// let destDirectory = options.s;
-// let filePath = options.f;
 
-let axiosDigestAuthInst;
+// Get Device Info
+yargs.command('getdi <playerName>', 'Get Device Info', (yargs) => {positionals.getDiPositional(yargs)}, (argv) => {handlers.getDeviceInfo(argv)});
 
-async function prepareAxios () {
-    if (axiosDigestAuthInst == null || axiosDigestAuthInst === undefined) {
-        const options = {
-            username: 'admin',
-            password: targetPassword,
-        };
-        axiosDigestAuthInst = new AxiosDigestAuth(options);
-    }
-};
+// Add a player to your configuration
+yargs.command('addplayer <playerName> <ipAddress> [username] [password] [storage]', 'Add a player', (yargs) => {positionals.addPlayerPositional(yargs)}, (argv) => {handlers.addPlayer(argv)});
 
-async function requestAxios (requestOptions) {
-    let response;
+// Remove a player from your configuration
+yargs.command('rmplayer <playerName>', 'remove a player', (yargs) => {positionals.rmPlayerPositional(yargs)}, (argv) => {handlers.removePlayer(argv)});
 
-    prepareAxios();
+// Update a player in your configuration
+yargs.command('editplayer <playerName>', 'Update a player', (yargs) => {positionals.editPlayerPositional(yargs)}, (argv) => {handlers.editPlayer(argv)});
 
-    requestOptions.url = `http://${ipAddress}/api/v1` + requestOptions.url;
-    response = await axiosDigestAuthInst.request(requestOptions);
-    if (rawResponse) {
-      console.log(response);
-    } else {
-      console.log(JSON.stringify(response.data));
-    }
-    return response.data?.data.result || response.data.result;
-};
+// List all players in your configuration
+yargs.command('listplayers', 'List all players', (yargs) => {}, handlers.listPlayers);
 
-async function main() {
-  try {
-    let response = await requestAxios({method: `${requestMethod}`, url: `${requestRoute}`});
-    // console.log(JSON.stringify(response));
-  } catch (e) {
-    console.log(JSON.stringify(e));
+// Reboot a player
+yargs.command('reboot <playerName>', 'Reboot a player', (yargs) => {positionals.rebootPositional(yargs)}, (argv) => {handlers.reboot(argv)});
+
+// Check if player has a lDWS password
+yargs.command('checkpw <playerName>', 'Check if player has a lDWS password', (yargs) => {positionals.checkPWPositional(yargs)}, (argv) => {handlers.checkPW(argv)});
+
+// Change player lDWS password
+yargs.command('setpw <playerName> [newPassword]', 'Change player lDWS password, enter "" for no password', (yargs) => {positionals.changePWPositional(yargs)}, (argv) => {handlers.changePW(argv)});
+
+// Take a screenshot
+yargs.command('screenshot <playerName>', 'Take a screenshot', (yargs) => {positionals.screenshotPositional(yargs)}, (argv) => {handlers.screenshot(argv)});
+
+// Get logs
+yargs.command('getlogs <playerName>', 'Get logs', (yargs) => {positionals.getLogsPositional(yargs)}, (argv) => {handlers.getLogs(argv)});
+
+// Raw command
+yargs.command('raw', 'allow for raw input', (yargs) => {positionals.rawPositional(yargs)}, (argv) => {handlers.handleRawRequest(argv)});
+
+// delete file
+yargs.command('delfile <playerName> <file>', 'Delete a file', (yargs) => {positionals.delFilePositional(yargs)}, (argv) => {handlers.deleteFile(argv)});
+
+// Push a file or files to a player (file or directory)
+yargs.command('putfile <playerName> <FileDirectory> [location]', 'Put files on a player', (yargs) => {positionals.putFilePositional(yargs)}, (argv) => {handlers.push(argv)});
+
+// getFiles
+yargs.command('getfiles <playerName> [path]', 'Get files on player', (yargs) => {positionals.getFilePositional(yargs)}, (argv) => {handlers.getFilesCom(argv)});
+
+// getTime 
+yargs.command('gettime <playerName>', 'Get player time', (yargs) => {positionals.getTimePositional(yargs)}, (argv) => {handlers.getTime(argv)});
+
+// set time
+yargs.command('settime <playerName> <timezone> <time> <date> [applyTimezone]', 'Set player time', (yargs) => {positionals.setTimePositional(yargs)}, (argv) => {handlers.setTime(argv)});
+
+// check DWS
+yargs.command('checkdws <playerName>', 'Check if player has DWS enabled', (yargs) => {positionals.checkDWSPositional(yargs)}, (argv) => {handlers.checkDWS(argv)});
+
+// set DWS
+yargs.command('setdws <playerName> <onOff>', 'set DWS on/off', (yargs) => {positionals.setDWSPositional(yargs)}, (argv) => {handlers.setDWS(argv)});
+
+// get registry
+yargs.command('getreg <playerName> [section] [key]', 'Get registry values', (yargs) => {positionals.getRegPositional(yargs)}, (argv) => {handlers.getReg(argv)});
+
+// edit registry
+yargs.command('setreg <playerName> <section> <key> <value>', 'Edit registry values', (yargs) => {positionals.setRegPositional(yargs)}, (argv) => {handlers.editReg(argv)});
+
+// Factory reset
+yargs.command('facreset <playerName>', 'Factory reset player', (yargs) => {positionals.facResetPositional(yargs)}, (argv) => {handlers.factoryReset(argv)});
+
+function main() {
+  let exists = handlers.checkConfigExists();
+  if (!exists) {
+    handlers.generatePlayersJson();
+  } else {
+    yargs.recommendCommands();
+    yargs.demandCommand(1, '')
+      .help()
+      .argv;
   }
 }
 
-if (require.main === module) {
-	main();
-}
+// Run main function
+main();
+
+
+
+
