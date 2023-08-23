@@ -85,10 +85,13 @@ function main() {
   if (!exists) {
     handlers.generatePlayersJson();
   } else {
-    yargs.recommendCommands();
+    
+    yargs.recommendCommands(); // recommend commands if given command is not found
     yargs.demandCommand(1, '')
-      .help()
-      .argv;
+      .help(); // show help menu if no command is given
+      
+    handlers.helpChecker();
+    yargs.argv;
   }
 }
 

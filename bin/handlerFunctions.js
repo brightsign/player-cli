@@ -8,6 +8,7 @@ const os = require('os');
 const readline = require('readline');
 const fetchDigest = require('digest-fetch');
 const statusCodes = require('http-status');
+const { argv } = require('process');
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
 
 // Define error types
@@ -53,6 +54,12 @@ class playerNameError extends Error {
 // edit player
 function editPlayer(argv) {
   
+    // check if player exists
+    const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
+    if (typeof players[argv.playerName] === "undefined") {
+        errorHandler(new playerNameError('Player not found', errorTypes.badPlayerName));
+    }
+
     let playerName = argv.playerName;
     let playerSetUser = argv.username;
     let playerSetPass = argv.password;
@@ -87,11 +94,12 @@ function editPlayer(argv) {
         let newJSONdata = JSON.stringify(JSONdata, null, 2);
         // write to the file
         fs.writeFile(CONFIG_FILE_PATH, newJSONdata, 'utf8', (error) => {
-        if (error) {
-            console.error('Error writing file: ', error);
-            return;
-        }
-        console.log('Player edited successfully');
+            if (error) {
+                console.error('Error writing file: ', error);
+                return;
+            } else if (argv.ipAddress || argv.password || argv.username || argv.storage) {
+                console.log('Player edited successfully');
+            }
         });
     });
 }
@@ -1071,6 +1079,31 @@ function checkpwErrorHandler(err) {
     }
 }
 
+// check if help was called for specific commands, if so give extra info
+function helpChecker() {
+    // Get the arguments passed without actually parsing them
+    const rawArgs = process.argv.slice(2);
+    //console.log(rawArgs);
+    // check if help is invoked. Help can be invoked by specifically asking for it, or by 
+    // not providing any arguments
+    const isHelpInvoked = rawArgs.includes('--help') || rawArgs.includes('-h') || rawArgs.includes('help') || rawArgs.length == 1 || rawArgs.length == 2;
+
+    if (isHelpInvoked) {
+        if (rawArgs.includes('editplayer')) {
+            console.log('Example editplayer usage: ');
+            console.log('Set new password: bsc editplayer playerName -p playerPassword');
+            console.log('Set new username: bsc editplayer playerName -u playerUsername');
+            console.log('Set new IP and storage type: bsc editplayer playerName -i playerIP -s playerStorageType');
+        }
+        else if (rawArgs.includes('putfile')) {
+            console.log('Example putfile usage: ');
+            console.log('Push file: bsc putfile playerName <pathToFileLocally> [directoryOnPlayer]');
+            console.log('Push directory: bsc putfile playerName <pathToDirectoryLocally> [directoryOnPlayer]');
+            console.log('Please note that the \'locationOnPlayer\' argument is a DIRECTORY on the player, not the file name that you want to push to. If you do not specify a directory location, the file will be pushed to the root directory of the player storage.');
+        }
+    }
+}
+
 
 module.exports = {
     editPlayer, 
@@ -1095,5 +1128,6 @@ module.exports = {
     getDeviceInfo,
     screenshot,
     generatePlayersJson,
-    checkConfigExists
+    checkConfigExists,
+    helpChecker
 };
