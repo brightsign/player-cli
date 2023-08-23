@@ -54,6 +54,12 @@ class playerNameError extends Error {
 // edit player
 function editPlayer(argv) {
   
+    // check if player exists
+    const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
+    if (typeof players[argv.playerName] === "undefined") {
+        errorHandler(new playerNameError('Player not found', errorTypes.badPlayerName));
+    }
+
     let playerName = argv.playerName;
     let playerSetUser = argv.username;
     let playerSetPass = argv.password;
@@ -88,11 +94,12 @@ function editPlayer(argv) {
         let newJSONdata = JSON.stringify(JSONdata, null, 2);
         // write to the file
         fs.writeFile(CONFIG_FILE_PATH, newJSONdata, 'utf8', (error) => {
-        if (error) {
-            console.error('Error writing file: ', error);
-            return;
-        }
-        console.log('Player edited successfully');
+            if (error) {
+                console.error('Error writing file: ', error);
+                return;
+            } else if (argv.ipAddress || argv.password || argv.username || argv.storage) {
+                console.log('Player edited successfully');
+            }
         });
     });
 }
@@ -1074,11 +1081,12 @@ function checkpwErrorHandler(err) {
 
 // check if help was called for specific commands, if so give extra info
 function helpChecker() {
-    //console.log('help checker');
-    //console.log(process.argv.slice(2))
-
+    // Get the arguments passed without actually parsing them
     const rawArgs = process.argv.slice(2);
-    const isHelpInvoked = rawArgs.includes('--help') || rawArgs.includes('-h') || rawArgs.includes('help');
+    //console.log(rawArgs);
+    // check if help is invoked. Help can be invoked by specifically asking for it, or by 
+    // not providing any arguments
+    const isHelpInvoked = rawArgs.includes('--help') || rawArgs.includes('-h') || rawArgs.includes('help') || rawArgs.length == 1 || rawArgs.length == 2;
 
     if (isHelpInvoked) {
         if (rawArgs.includes('editplayer')) {
