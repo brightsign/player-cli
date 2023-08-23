@@ -1095,7 +1095,7 @@ function helpChecker() {
             console.log('Set new username: bsc editplayer playerName -u playerUsername');
             console.log('Set new IP and storage type: bsc editplayer playerName -i playerIP -s playerStorageType');
         }
-        if (rawArgs.includes('putfile')) {
+        else if (rawArgs.includes('putfile')) {
             console.log('Example putfile usage: ');
             console.log('Push file: bsc putfile playerName <pathToFileLocally> [directoryOnPlayer]');
             console.log('Push directory: bsc putfile playerName <pathToDirectoryLocally> [directoryOnPlayer]');
