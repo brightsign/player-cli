@@ -1,6 +1,6 @@
 {
   "name": "@brightsign/bsc",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple Node CLI App to communicate with a BrightSign player over the LAN using the Local DWS REST HTTP APIs.",
   "main": "./bin/index.js",
   "scripts": {
