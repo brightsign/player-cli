@@ -8,6 +8,7 @@ const os = require('os');
 const readline = require('readline');
 const fetchDigest = require('digest-fetch');
 const statusCodes = require('http-status');
+const { argv } = require('process');
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
 
 // Define error types
@@ -1071,6 +1072,30 @@ function checkpwErrorHandler(err) {
     }
 }
 
+// check if help was called for specific commands, if so give extra info
+function helpChecker() {
+    //console.log('help checker');
+    //console.log(process.argv.slice(2))
+
+    const rawArgs = process.argv.slice(2);
+    const isHelpInvoked = rawArgs.includes('--help') || rawArgs.includes('-h') || rawArgs.includes('help');
+
+    if (isHelpInvoked) {
+        if (rawArgs.includes('editplayer')) {
+            console.log('Example editplayer usage: ');
+            console.log('Set new password: bsc editplayer playerName -p playerPassword');
+            console.log('Set new username: bsc editplayer playerName -u playerUsername');
+            console.log('Set new IP and storage type: bsc editplayer playerName -i playerIP -s playerStorageType');
+        }
+        if (rawArgs.includes('putfile')) {
+            console.log('Example putfile usage: ');
+            console.log('Push file: bsc putfile playerName <pathToFileLocally> [directoryOnPlayer]');
+            console.log('Push directory: bsc putfile playerName <pathToDirectoryLocally> [directoryOnPlayer]');
+            console.log('Please note that the \'locationOnPlayer\' argument is a DIRECTORY on the player, not the file name that you want to push to. If you do not specify a directory location, the file will be pushed to the root directory of the player storage.');
+        }
+    }
+}
+
 
 module.exports = {
     editPlayer, 
@@ -1095,5 +1120,6 @@ module.exports = {
     getDeviceInfo,
     screenshot,
     generatePlayersJson,
-    checkConfigExists
+    checkConfigExists,
+    helpChecker
 };
