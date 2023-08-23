@@ -82,6 +82,22 @@ yargs.command('setreg <playerName> <section> <key> <value>', 'Edit registry valu
 // Factory reset
 yargs.command('facreset <playerName>', 'Factory reset player', (yargs) => {positionals.facResetPositional(yargs)}, (argv) => {handlers.factoryReset(argv)});
 
+// define yargs options
+yargs.option('verbose', {
+  alias: 'v',
+  describe: 'Run with verbose logging',
+  type: 'boolean',
+  default: false,
+});
+
+yargs.option('rawdata', {
+  alias: 'd',
+  describe: 'Output raw json response data',
+  type: 'boolean',
+  default: false,
+});
+
+// Main function
 function main() {
   let exists = handlers.checkConfigExists();
   if (!exists) {

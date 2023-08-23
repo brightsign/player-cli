@@ -57,12 +57,19 @@ function editPlayer(argv) {
     let playerSetUser = argv.username;
     let playerSetPass = argv.password;
     let playerSetIP = argv.ipAddress;
+
+    if (argv.verbose) {
+        console.log('Editing player ' + playerName);
+        console.log('Opening players.json')
+    }
   
     fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
         if (error) {
             console.error('Error reading players.json: ', error);
         }
-
+        if (argv.verbose) {
+            console.log('players.json opened successfully');
+        }
         // parse the json
         let JSONdata = JSON.parse(data);
         // craft the json object that will replace the old one
@@ -83,6 +90,11 @@ function editPlayer(argv) {
             JSONdata[playerName].storage = argv.storage;
         }
 
+        if (argv.verbose) {
+            console.log('New JSON object created');
+            console.log('Stringifying new JSON object and writing to players.json');
+        }
+
         // stringify the new json object
         let newJSONdata = JSON.stringify(JSONdata, null, 2);
         // write to the file
@@ -90,6 +102,9 @@ function editPlayer(argv) {
         if (error) {
             console.error('Error writing file: ', error);
             return;
+        }
+        if (argv.verbose) {
+            console.log('New JSON object written to players.json');
         }
         console.log('Player edited successfully');
         });
@@ -118,6 +133,13 @@ async function editReg(argv) {
         errorHandler(err);
         return;
     }
+
+    if (argv.verbose) {
+        console.log('Editing registry values on ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+        console.log('Setting => Section: ' + argv.section + ', key: ' + argv.key + ', value: ' + argv.value);
+    }
+
     // create body
     let rawBody = JSON.stringify({ "value": argv.value });
 
@@ -128,10 +150,21 @@ async function editReg(argv) {
         body: rawBody
     }
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     // send request
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        console.log(response);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+        if (!argv.rawdata) {
+            console.log('Registry setting changed: ' + response.data.result.success);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
     } catch (err) {
         errorHandler(err);
     }
@@ -148,6 +181,14 @@ async function factoryReset(argv) {
         errorHandler(err);
         return;
     }
+
+    if (argv.verbose) {
+        console.log('Factory resetting ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
+    let rawBody = JSON.stringify({ "factoryReset": true });
+
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/control/reboot',
@@ -155,10 +196,23 @@ async function factoryReset(argv) {
         body: rawBody
     }
 
+    if (argv.verbose) {
+        console.log('Setting special body for factory reset...');
+        console.log('Body set');
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);  
+    }
+
     // send request
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        console.log(response);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+        if (!argv.rawdata) {
+            console.log('Factory reset: ' + response.data.result.success);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
     } catch (err) {
         errorHandler(err);
     }
@@ -175,16 +229,31 @@ async function setTime(argv) {
         errorHandler(err);
         return;
     }
+
+    if (argv.verbose) {
+        console.log('Setting time on ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let timezone = argv.timezone;
     let setDate = argv.date;
     let setTime = argv.time;
     let applyTimezoneBool = argv.applyTimezone;
+
+    if (argv.verbose) {
+        console.log('Setting => Timezone: ' + timezone + ', date: ' + setDate + ', time: ' + setTime + ', applyTimezone: ' + applyTimezoneBool);
+    }
 
     // check if time and date are in correct format
     // regex is a way to specify a pattern of characters to be matched in a string
     // time format is hh:mm:ss, date format is YYYY-MM-DD
     const timeFormatRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
     const dateFormatRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+    
+    if (argv.verbose) {
+        console.log('Checking if time and date are in correct format');
+    }
+
     if (setTime !== '' && setDate !== '' && !timeFormatRegex.test(setTime) && !dateFormatRegex.test(setDate)) {
         console.log('Date and time entered in wrong format, please use hh:mm:ss and YYYY-MM-DD respectively');
         return;
@@ -196,6 +265,10 @@ async function setTime(argv) {
         // date not entered correctly
         console.log('Date not entered correctly, please enter in format YYYY-MM-DD');
         return;
+    } else {
+        if (argv.verbose) {
+            console.log('Time and date entered correctly');
+        }
     }
 
     // set the time on the player
@@ -205,6 +278,10 @@ async function setTime(argv) {
         "applyTimezone": applyTimezoneBool
     });
 
+    if (argv.verbose) {
+        console.log('Creating request body');
+    }
+
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/time',
@@ -212,9 +289,20 @@ async function setTime(argv) {
         body: rawBody
     }
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        console.log('Time set successfully: ' + response.data.result);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+        if (argv.rawdata) {
+            console.log('Time set successfully: ' + response.data.result);
+        } else if (!argv.rawdata) {
+            console.log(response.data.result);
+        }
     }
     catch (err) {
         errorHandler(err);
@@ -236,21 +324,43 @@ async function getReg(argv) {
     let key = argv.key;
     let requestOptions;
 
+    if (argv.verbose) {
+        console.log('Getting registry values from ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     if (section == '') {
+        if (argv.verbose) {
+            console.log('No section provided, getting all registry values');
+        }
         requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/registry',
         };
     } else {
+        if (argv.verbose) {
+            console.log('Section provided, getting registry values for section: ' + section + ' and key: ' + key);
+        }
         requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/registry/' + section + '/' + key,
         };
     }
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        console.log(response.data.result.value);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+        if (!argv.rawdata) {
+            console.log(response.data.result.value);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
     } catch (err) {
         errorHandler(err);
     }
@@ -267,13 +377,29 @@ async function setDWS(argv) {
         errorHandler(err);
         return;
     }
+
+    if (argv.verbose) {
+        console.log('Setting DWS for ' + argv.playerName + ' to ' + argv.onOff);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let onOff = argv.onOff;
     let rawBody;
 
+    if (argv.verbose) {
+        console.log('Checking on/off value');
+    }
+
     if (onOff == 'on') {
+        if (argv.verbose) {
+            console.log('on/off value is set to on');
+        }
         rawBody = JSON.stringify({"enable": true});
-        setDWSsubFunc(playerData, rawBody, onOff);
+        setDWSsub(playerData, rawBody, onOff, argv);
     } else if (onOff == 'off') {
+        if (argv.verbose) {
+            console.log('on/off value is set to off');
+        }
         rawBody = JSON.stringify({"enable": false});
         confirmDangerousCommand('This may disable access to the player DWS APIs, limiting CLI capability (as of 8/10/23, using this command will disable local DWS APIs).', setDWSsub, playerData, rawBody, onOff);
     } else {
@@ -283,7 +409,7 @@ async function setDWS(argv) {
 }
 
 // set DWS sub function
-async function setDWSsub(playerData, rawBody, onOff) {
+async function setDWSsub(playerData, rawBody, onOff, argv) {
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
@@ -291,18 +417,30 @@ async function setDWSsub(playerData, rawBody, onOff) {
         body: rawBody
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
-            console.log('DWS turned on, player rebooting');
-        } else if (response.data.result.success && response.data.result.reboot && onOff == 'off') {
-            console.log('DWS turned off, player rebooting');
-        } else if (response.data.result.success && !response.data.result.reboot && onOff == 'on') {
-            console.log('DWS turned on');
-        } else if (response.data.result.success && !response.data.result.reboot && onOff == 'off') {
-            console.log('DWS turned off');
-        } else {
-            console.log('set DWS failed');
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+
+        if (!argv.rawdata) {
+            if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
+                console.log('DWS turned on, player rebooting');
+            } else if (response.data.result.success && response.data.result.reboot && onOff == 'off') {
+                console.log('DWS turned off, player rebooting');
+            } else if (response.data.result.success && !response.data.result.reboot && onOff == 'on') {
+                console.log('DWS turned on');
+            } else if (response.data.result.success && !response.data.result.reboot && onOff == 'off') {
+                console.log('DWS turned off');
+            } else {
+                console.log('set DWS failed');
+            }
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
         }
     } catch (err) {
         errorHandler(err);
@@ -321,17 +459,33 @@ async function checkDWS(argv) {
         return;
     }
 
+    if (argv.verbose) {
+        console.log('Checking if DWS is enabled on ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (response.data.result.value) {
-            console.log('DWS is enabled')
-        } else {
-            console.log('DWS is disabled')
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+        if (!argv.rawdata) {
+            if (response.data.result.value) {
+                console.log('DWS is enabled')
+            } else {
+                console.log('DWS is disabled')
+            }
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
         }
     } catch (err) {
         errorHandler(err);
@@ -339,7 +493,7 @@ async function checkDWS(argv) {
 }
 
 // get files func
-async function getFilesCom(argv) {
+async function getFilesCommand(argv) {
     // get player data from argv
     let playerData;
     try {
@@ -351,14 +505,30 @@ async function getFilesCom(argv) {
     }
     let playerPath = argv.path;
 
+    if (argv.verbose) {
+        console.log('Getting files from ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + playerPath,
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        console.log(response.data.result.files);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+        if (!argv.rawdata) {
+            console.log(response.data.result.files);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
     } catch (err) {
         errorHandler(err);
     }
@@ -376,13 +546,25 @@ async function getTime(argv) {
         return;
     }
 
+    if (argv.verbose) {
+        console.log('Getting time on ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/time',
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
         console.log(response.data.result);
     } catch (err) {
         errorHandler(err);
@@ -402,14 +584,30 @@ async function deleteFile(argv) {
     }
     let playerPath = argv.file;
 
+    if (argv.verbose) {
+        console.log('Deleting file ' + playerPath + ' from ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'DELETE',
         url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + playerPath,
     }
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        console.log(playerPath + ' deleted: ' + response.data.result.success);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+        if (!argv.rawdata) {
+            console.log(playerPath + ' deleted: ' + response.data.result.success);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
     }
     catch (err) {
         errorHandler(err);
@@ -428,13 +626,25 @@ async function getLogs(argv) {
         return;
     }
 
+    if (argv.verbose) {
+        console.log('Getting logs from ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/logs',
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
         console.log(response.data.result);
     } catch (err) {
         errorHandler(err);
@@ -456,16 +666,30 @@ async function handleRawRequest(argv) {
         url: 'http://' + ipAddressRaw + '/api/v1/' + requestRouteRaw,
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestMethodRaw + ' request to ' + requestRouteRaw + ' on ' + ipAddressRaw);
+        console.log('Full URL: ' + requestOptions.url);
+    }
+
+
     if (fileRaw != null) {
         let form = new formData();
         let fileToUpload = fs.createReadStream(fileRaw);
         console.log('Uploading file: ', fileRaw);
         form.append("file", fileToUpload, {filename: fileRaw});
         requestOptions.body = form;
+
+        if (argv.verbose) {
+            console.log('Uploading file: ', fileRaw);
+            console.log('FormData created and request being sent')
+        }
     }
 
     try {
         let response = await requestFetch(requestOptions, 'admin', targetPasswordRaw);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
     } catch (err) {
         errorHandler(err);
     }
@@ -488,6 +712,11 @@ async function push(argv) {
         return;
     }
 
+    if (argv.verbose) {
+        console.log('Pushing file(s) to ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/files/sd/' + argv.location,
@@ -500,28 +729,53 @@ async function push(argv) {
 
     try {
         isFile = await checkDir(path);
+        if (argv.verbose) {
+            console.log('Checking if provided path is a file or directory');
+        }
     } catch (err) {
         errorHandler(err);
     }
 
     if (isFile === true) {
-        // if file, push file
-        console.log('pushing file: ' + absPath);
+        if (argv.verbose) {
+            console.log('Provided path is a file');
+        }
 
         let form = new formData();
         let fileToUpload = fs.createReadStream(path);
         form.append("file", fileToUpload, {filename: path});
         requestOptions.body = form;
+        if (argv.verbose) {
+            console.log('FormData created and appended to request body');
+        }
+
+        // if file, push file
+        
 
         try {
+            if (argv.verbose) {
+                console.log('pushing file: ' + absPath);
+                console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+            }
             let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-            console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
+            if (argv.verbose) {
+                console.log('Response received! => ');
+            }
+
+            if (!argv.rawdata) {
+                console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
+            } else if (argv.rawdata) {
+                console.log(response.data.result);
+            }
         } catch (err) {
             errorHandler(err);
         }
     } else if (isFile === false){
+        if (argv.verbose) {
+            console.log('Provided path is a directory');
+            console.log('getting files...');
+        }
         
-        console.log('getting files...');
         try {
             files = await getFiles(path);
         } catch (err) {
@@ -538,12 +792,25 @@ async function push(argv) {
             let form = new formData();
             form.append('file', fileToUpload, {filename: files[i]});
             requestOptions.body = form;
-
-            console.log('Pushing ' + files[i]);
+            
+            if (argv.verbose) {
+                console.log('FormData created and appended to request body');
+                console.log('Pushing ' + files[i]);
+            }
 
             try {
+                if (argv.verbose) {
+                    console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+                }
                 let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-                console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
+                if (argv.verbose) {
+                    console.log('Response received! => ');
+                }
+                if (!argv.rawdata) {
+                    console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
+                } else if (argv.rawdata) {
+                    console.log(response.data.result);
+                }
             } catch (err) {
                 errorHandler(err);
             }
@@ -563,6 +830,11 @@ async function changePW(argv) {
         return;
     }
 
+    if (argv.verbose) {
+        console.log('Setting the password of ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let rawBody = JSON.stringify({
         "password": argv.newPassword,
         "previous_password": playerData[2]
@@ -575,15 +847,30 @@ async function changePW(argv) {
         body: rawBody
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+        console.log('Previous password: ' + playerData[2] + ', new password: ' + argv.newPassword);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        console.log('Password changed (player side): ' + response.data.result.success);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+        if (!argv.rawdata) {
+            console.log('Password changed (player side): ' + response.data.result.success);
+        } else if (argv.rawdata) {
+            console.log(response.data.result)
+        }
         //console.log(response);
     } catch (err) {
         errorHandler(err);
     }
 
     try {
+        if (argv.verbose) {
+            console.log('Changing password in players.json');
+        }
         // update password in players.json
         fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
             if (error) {
@@ -627,17 +914,42 @@ async function checkPW(argv) {
         return;
     }
 
+    if (argv.verbose) {
+        console.log('Checking password of ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/control/dws-password',
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
         //console.log(response);
         //console.log(response.data.result.password);
         //console.log('Player has password set: ' + response.data.result.password.);
-        console.log('Password is blank: ' + response.data.result.password.isBlank);
+        
+        if (!argv.rawdata) {
+            console.log('Password is blank: ' + response.data.result.password.isBlank);
+            if (response.data.result.password.isBlank && (playerData[2] == '' || playerData[2] == undefined)) {
+                console.log('No password set locally, no password on player, you are good to go!')
+            } else if (!response.data.result.password.isBlank && (playerData[2] !== '' || playerData[2] !== undefined)) {
+                console.log('Password is set on the player, and your local password is set correctly, you are good to go!')
+            } else if (response.data.result.password.isBlank && (playerData[2] !== '' || playerData[2] !== undefined)) {
+                console.log('Password is not set on the player, but you have a password set locally. This will continue to work, but consider changing your password locally to be blank.')
+            }
+        } else if (argv.rawdata) {
+            console.log(response.data.result)
+        }
+
     } catch (err) {
         let errorType = checkpwErrorHandler(err);
         if (errorType == errorTypes.wrongPW && (playerData[2] !== '' || playerData[2] !== undefined)) {
@@ -661,15 +973,32 @@ async function reboot(argv) {
         return;
     }
 
+    if (argv.verbose) {
+        console.log('Rebooting ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/control/reboot',
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
+
         //console.log(response);
-        console.log('Player rebooted: ' + response.data.result.success);
+        if (!argv.rawdata) {
+            console.log('Player rebooted: ' + response.data.result.success);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
     } catch (err) {
         errorHandler(err);
     }
@@ -677,10 +1006,20 @@ async function reboot(argv) {
 
 // add player locally function
 function addPlayer(argv) {
+    if (argv.verbose) {
+        console.log('Adding player locally');
+        console.log('Adding player ' + argv.playerName + ' with IP address ' + argv.ipAddress + ',  password ' + argv.password + 'and storage: ' + argv.storage + ' to players.json');
+        console.log('Opening players.json');
+    }
+    
     fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
         if (error) {
             console.error('Error reading file: ', error);
             return;
+        }
+        if (argv.verbose) {
+            console.log('File opened successfully');
+            console.log('Parsing JSON data');
         }
 
         // parse json object
@@ -694,12 +1033,20 @@ function addPlayer(argv) {
             storage: argv.storage
         }
 
+        if (argv.verbose) {
+            console.log('JSON data parsed successfully');
+            console.log('Writing new JSON data to file');
+        }
+
         // write new json object to file
         let modifiedData = JSON.stringify(JSONdata, null, 2);
         fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
         if (error) {
             console.error('Error writing file: ', error);
             return;
+        }
+        if (argv.verbose) {
+            console.log('Data written to file successfully');
         }
         console.log('Player added successfully');
         });
@@ -708,17 +1055,39 @@ function addPlayer(argv) {
 
 // remove player locally function
 function removePlayer(argv) {
+
+    if (argv.verbose) {
+        console.log('Removing player ' + argv.playerName + ' from players.json');
+        console.log('Removing player locally');
+        console.log('Opening players.json');
+    }
+
     fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
         if (error) {
         console.error('Error reading file: ', error);
         return;
         }
 
+        if (argv.verbose) {
+            console.log('players.json opened successfully');
+            console.log('Parsing JSON data');
+        }
+
         // parse json object
         let JSONdata = JSON.parse(data);
 
+        if (argv.verbose) {
+            console.log('JSON data parsed successfully');
+            console.log('Removing player from JSON data');
+        }
+
         // remove player
         delete JSONdata[argv.playerName];
+
+        if (argv.verbose) {
+            console.log('Player removed from JSON data');
+            console.log('Writing new JSON data to file');
+        }
 
         // write new json object to file
         let modifiedData = JSON.stringify(JSONdata, null, 2);
@@ -727,6 +1096,11 @@ function removePlayer(argv) {
                 console.error('Error writing file: ', error);
                 return;
             }
+
+            if (argv.verbose) {
+                console.log('Data written to file successfully');
+            }
+
             console.log('Player removed successfully');
         });
     });
@@ -744,12 +1118,25 @@ async function getDeviceInfo(argv) {
         return;
     }
 
+    if (argv.verbose) {
+        console.log('Getting device info for ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/info',
     };
+
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
         console.log(response.data.result);
     } catch (err) {
         errorHandler(err);
@@ -769,15 +1156,31 @@ async function screenshot(argv) {
         return;
     }
 
+    if (argv.verbose) {
+        console.log('Taking screenshot on ' + argv.playerName);
+        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
+    }
+
     let requestOptions = {
         method: 'POST',
         url: 'http://' + playerData[1] + '/api/v1/snapshot',
     };
 
+    if (argv.verbose) {
+        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
+    }
+
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        if (argv.verbose) {
+            console.log('Response received! => ');
+        }
         //console.log(response);
-        console.log('Screenshot taken! Location: ' + response.data.result.filename);
+        if (!argv.rawdata) {
+            console.log('Screenshot taken! Location: ' + response.data.result.filename);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
     } catch (err) {
         errorHandler(err);
     }
@@ -1090,7 +1493,7 @@ module.exports = {
     getReg,
     setDWS,
     checkDWS,
-    getFilesCom,
+    getFilesCommand,
     getTime,
     deleteFile,
     getLogs,
