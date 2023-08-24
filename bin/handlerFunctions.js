@@ -9,6 +9,7 @@ const readline = require('readline');
 const fetchDigest = require('digest-fetch');
 const statusCodes = require('http-status');
 const { argv } = require('process');
+const { log } = require('console');
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
 
 // Define error types
@@ -64,19 +65,18 @@ function editPlayer(argv) {
     let playerSetUser = argv.username;
     let playerSetPass = argv.password;
     let playerSetIP = argv.ipAddress;
+    let playerSetStorage = argv.storage;
 
-    if (argv.verbose) {
-        console.log('Editing player ' + playerName);
-        console.log('Opening players.json')
-    }
+    logIfOption('Editing player ' + playerName, argv.verbose);
+    logIfOption('Opening players.json', argv.verbose);
   
     fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
         if (error) {
             console.error('Error reading players.json: ', error);
         }
-        if (argv.verbose) {
-            console.log('players.json opened successfully');
-        }
+        
+        logIfOption('players.json opened successfully', argv.verbose);
+        
         // parse the json
         let JSONdata = JSON.parse(data);
         // craft the json object that will replace the old one
@@ -94,13 +94,11 @@ function editPlayer(argv) {
         }
         if (argv.storage) {
             console.log('new storage inputted');
-            JSONdata[playerName].storage = argv.storage;
+            JSONdata[playerName].storage = playerSetStorage;
         }
 
-        if (argv.verbose) {
-            console.log('New JSON object created');
-            console.log('Stringifying new JSON object and writing to players.json');
-        }
+        logIfOption('New JSON object created', argv.verbose);
+        logIfOption('Stringifying new JSON object and writing to players.json', argv.verbose);
 
         // stringify the new json object
         let newJSONdata = JSON.stringify(JSONdata, null, 2);
@@ -109,9 +107,9 @@ function editPlayer(argv) {
             if (error) {
                 console.error('Error writing file: ', error);
                 return;
-            } else if (argv.ipAddress || argv.password || argv.username || argv.storage) {
-                console.log('Player edited successfully');
             }
+            logIfOption('New JSON object written to players.json', argv.verbose);
+            console.log('Player edited successfully');
         });
     });
 }
@@ -139,11 +137,9 @@ async function editReg(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Editing registry values on ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-        console.log('Setting => Section: ' + argv.section + ', key: ' + argv.key + ', value: ' + argv.value);
-    }
+    logIfOption('Editing registry values on ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
+    logIfOption('Setting => Section: ' + argv.section + ', key: ' + argv.key + ', value: ' + argv.value, argv.verbose);
 
     // create body
     let rawBody = JSON.stringify({ "value": argv.value });
@@ -155,16 +151,12 @@ async function editReg(argv) {
         body: rawBody
     }
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     // send request
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
             console.log('Registry setting changed: ' + response.data.result.success);
         } else if (argv.rawdata) {
@@ -187,12 +179,10 @@ async function factoryReset(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Factory resetting ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Factory resetting ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
-    let rawBody = JSON.stringify({ "factoryReset": true });
+    let rawBody = JSON.stringify({ "factory_reset": true });
 
     let requestOptions = {
         method: 'PUT',
@@ -201,18 +191,14 @@ async function factoryReset(argv) {
         body: rawBody
     }
 
-    if (argv.verbose) {
-        console.log('Setting special body for factory reset...');
-        console.log('Body set');
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);  
-    }
+    logIfOption('Setting special body for factory reset...', argv.verbose);
+    logIfOption('Body set', argv.verbose);
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     // send request
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
             console.log('Factory reset: ' + response.data.result.success);
         } else if (argv.rawdata) {
@@ -235,19 +221,15 @@ async function setTime(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Setting time on ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Setting time on ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
     let timezone = argv.timezone;
     let setDate = argv.date;
     let setTime = argv.time;
     let applyTimezoneBool = argv.applyTimezone;
 
-    if (argv.verbose) {
-        console.log('Setting => Timezone: ' + timezone + ', date: ' + setDate + ', time: ' + setTime + ', applyTimezone: ' + applyTimezoneBool);
-    }
+    logIfOption('Setting => Timezone: ' + timezone + ', date: ' + setDate + ', time: ' + setTime + ', applyTimezone: ' + applyTimezoneBool, argv.verbose);
 
     // check if time and date are in correct format
     // regex is a way to specify a pattern of characters to be matched in a string
@@ -255,9 +237,7 @@ async function setTime(argv) {
     const timeFormatRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
     const dateFormatRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
     
-    if (argv.verbose) {
-        console.log('Checking if time and date are in correct format');
-    }
+    logIfOption('Checking if time and date are in correct format', argv.verbose);
 
     if (setTime !== '' && setDate !== '' && !timeFormatRegex.test(setTime) && !dateFormatRegex.test(setDate)) {
         console.log('Date and time entered in wrong format, please use hh:mm:ss and YYYY-MM-DD respectively');
@@ -271,9 +251,7 @@ async function setTime(argv) {
         console.log('Date not entered correctly, please enter in format YYYY-MM-DD');
         return;
     } else {
-        if (argv.verbose) {
-            console.log('Time and date entered correctly');
-        }
+        console.log('Time and date entered correctly');
     }
 
     // set the time on the player
@@ -283,9 +261,7 @@ async function setTime(argv) {
         "applyTimezone": applyTimezoneBool
     });
 
-    if (argv.verbose) {
-        console.log('Creating request body');
-    }
+    logIfOption('Creating request body', argv.verbose);
 
     let requestOptions = {
         method: 'PUT',
@@ -294,19 +270,15 @@ async function setTime(argv) {
         body: rawBody
     }
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
-        if (argv.rawdata) {
+        logIfOption('Response received! => ', argv.verbose);
+        if (!argv.rawdata) {
             console.log('Time set successfully: ' + response.data.result);
-        } else if (!argv.rawdata) {
-            console.log(response.data.result);
+        } else if (argv.rawdata) {
+            console.log(response.data);
         }
     }
     catch (err) {
@@ -329,38 +301,29 @@ async function getReg(argv) {
     let key = argv.key;
     let requestOptions;
 
-    if (argv.verbose) {
-        console.log('Getting registry values from ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Getting registry values from ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
+    
 
     if (section == '') {
-        if (argv.verbose) {
-            console.log('No section provided, getting all registry values');
-        }
+        logIfOption('No section provided, getting all registry values', argv.verbose);
         requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/registry',
         };
     } else {
-        if (argv.verbose) {
-            console.log('Section provided, getting registry values for section: ' + section + ' and key: ' + key);
-        }
+        logIfOption('Section provided, getting registry values for section: ' + section + ' and key: ' + key, argv.verbose);
         requestOptions = {
-        method: 'GET',
-        url: 'http://' + playerData[1] + '/api/v1/registry/' + section + '/' + key,
+            method: 'GET',
+            url: 'http://' + playerData[1] + '/api/v1/registry/' + section + '/' + key,
         };
     }
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
             console.log(response.data.result.value);
         } else if (argv.rawdata) {
@@ -383,28 +346,20 @@ async function setDWS(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Setting DWS for ' + argv.playerName + ' to ' + argv.onOff);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
-
+    logIfOption('Setting DWS for ' + argv.playerName + ' to ' + argv.onOff, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
+    
     let onOff = argv.onOff;
     let rawBody;
 
-    if (argv.verbose) {
-        console.log('Checking on/off value');
-    }
+    logIfOption('Checking on/off value', argv.verbose);
 
     if (onOff == 'on') {
-        if (argv.verbose) {
-            console.log('on/off value is set to on');
-        }
+        logIfOption('Setting DWS to on', argv.verbose)
         rawBody = JSON.stringify({"enable": true});
         setDWSsub(playerData, rawBody, onOff, argv);
     } else if (onOff == 'off') {
-        if (argv.verbose) {
-            console.log('on/off value is set to off');
-        }
+        logIfOption('Setting DWS to off', argv.verbose)
         rawBody = JSON.stringify({"enable": false});
         confirmDangerousCommand('This may disable access to the player DWS APIs, limiting CLI capability (as of 8/10/23, using this command will disable local DWS APIs).', setDWSsub, playerData, rawBody, onOff);
     } else {
@@ -422,16 +377,11 @@ async function setDWSsub(playerData, rawBody, onOff, argv) {
         body: rawBody
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
-
+        logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
             if (response.data.result.success && response.data.result.reboot && onOff == 'on') {
                 console.log('DWS turned on, player rebooting');
@@ -464,25 +414,19 @@ async function checkDWS(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Checking if DWS is enabled on ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Checking if DWS is enabled on ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/control/local-dws',
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
             if (response.data.result.value) {
                 console.log('DWS is enabled')
@@ -510,25 +454,19 @@ async function getFilesCommand(argv) {
     }
     let playerPath = argv.path;
 
-    if (argv.verbose) {
-        console.log('Getting files from ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Getting files from ' + playerPath, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + playerPath,
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
             console.log(response.data.result.files);
         } else if (argv.rawdata) {
@@ -551,25 +489,19 @@ async function getTime(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Getting time on ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Getting time on ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose)
 
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/time',
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         console.log(response.data.result);
     } catch (err) {
         errorHandler(err);
@@ -589,25 +521,19 @@ async function deleteFile(argv) {
     }
     let playerPath = argv.file;
 
-    if (argv.verbose) {
-        console.log('Deleting file ' + playerPath + ' from ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Deleting file ' + playerPath, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose)
 
     let requestOptions = {
         method: 'DELETE',
         url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + playerPath,
     }
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose)
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
             console.log(playerPath + ' deleted: ' + response.data.result.success);
         } else if (argv.rawdata) {
@@ -631,25 +557,19 @@ async function getLogs(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Getting logs from ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Getting logs from ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/logs',
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         console.log(response.data.result);
     } catch (err) {
         errorHandler(err);
@@ -671,11 +591,8 @@ async function handleRawRequest(argv) {
         url: 'http://' + ipAddressRaw + '/api/v1/' + requestRouteRaw,
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestMethodRaw + ' request to ' + requestRouteRaw + ' on ' + ipAddressRaw);
-        console.log('Full URL: ' + requestOptions.url);
-    }
-
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url + ' on ' + ipAddressRaw, argv.verbose);
+    logIfOption('Full URL: ' + requestOptions.url, argv.verbose);
 
     if (fileRaw != null) {
         let form = new formData();
@@ -684,24 +601,20 @@ async function handleRawRequest(argv) {
         form.append("file", fileToUpload, {filename: fileRaw});
         requestOptions.body = form;
 
-        if (argv.verbose) {
-            console.log('Uploading file: ', fileRaw);
-            console.log('FormData created and request being sent')
-        }
+        logIfOption('Uploading file: ' + fileRaw, argv.verbose);
+        logIfOption('FormData created and request being sent', argv.verbose);
     }
 
     try {
         let response = await requestFetch(requestOptions, 'admin', targetPasswordRaw);
-        if (argv.verbose) {
-            console.log('Response received! => ');
+        logIfOption('Response received! => ', argv.verbose);
+        if(rawResponseRaw) {
+            console.log(response);
+        } else {
+            console.log(response.data.result);
         }
     } catch (err) {
         errorHandler(err);
-    }
-    if(rawResponseRaw) {
-        console.log(response);
-    } else {
-        console.log(response.data.result);
     }
 }
 
@@ -717,10 +630,8 @@ async function push(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Pushing file(s) to ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Pushing file(s) to ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
     let requestOptions = {
         method: 'PUT',
@@ -734,39 +645,29 @@ async function push(argv) {
 
     try {
         isFile = await checkDir(path);
-        if (argv.verbose) {
-            console.log('Checking if provided path is a file or directory');
-        }
+        logIfOption('Checking if provided path is a file or directory', argv.verbose)
     } catch (err) {
         errorHandler(err);
     }
 
     if (isFile === true) {
-        if (argv.verbose) {
-            console.log('Provided path is a file');
-        }
+        logIfOption('Provided path is a file', argv.verbose)
 
         let form = new formData();
         let fileToUpload = fs.createReadStream(path);
         form.append("file", fileToUpload, {filename: path});
         requestOptions.body = form;
-        if (argv.verbose) {
-            console.log('FormData created and appended to request body');
-        }
+        logIfOption('FormData created and appended to request body', argv.verbose)
 
         // if file, push file
         
 
         try {
-            if (argv.verbose) {
-                console.log('pushing file: ' + absPath);
-                console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-            }
+            logIfOption('pushing file: ' + absPath, argv.verbose);
+            logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
             let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-            if (argv.verbose) {
-                console.log('Response received! => ');
-            }
-
+            logIfOption('Response received! => ', argv.verbose);
+            
             if (!argv.rawdata) {
                 console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
             } else if (argv.rawdata) {
@@ -776,10 +677,8 @@ async function push(argv) {
             errorHandler(err);
         }
     } else if (isFile === false){
-        if (argv.verbose) {
-            console.log('Provided path is a directory');
-            console.log('getting files...');
-        }
+        logIfOption('Provided path is a directory', argv.verbose);
+        logIfOption('getting files...', argv.verbose);
         
         try {
             files = await getFiles(path);
@@ -798,19 +697,13 @@ async function push(argv) {
             form.append('file', fileToUpload, {filename: files[i]});
             requestOptions.body = form;
             
-            if (argv.verbose) {
-                console.log('FormData created and appended to request body');
-                console.log('Pushing ' + files[i]);
-            }
+            logIfOption('FormData created and appended to request body', argv.verbose);
+            logIfOption('Pushing ' + files[i], argv.verbose);
 
             try {
-                if (argv.verbose) {
-                    console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-                }
+                logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
                 let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-                if (argv.verbose) {
-                    console.log('Response received! => ');
-                }
+                logIfOption('Response received! => ', argv.verbose);
                 if (!argv.rawdata) {
                     console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
                 } else if (argv.rawdata) {
@@ -835,10 +728,8 @@ async function changePW(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Setting the password of ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Setting the password of ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', previous password: ' + playerData[2], argv.verbose)
 
     let rawBody = JSON.stringify({
         "password": argv.newPassword,
@@ -852,16 +743,12 @@ async function changePW(argv) {
         body: rawBody
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-        console.log('Previous password: ' + playerData[2] + ', new password: ' + argv.newPassword);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
+    logIfOption('Previous password: ' + playerData[2] + ', new password: ' + argv.newPassword, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
             console.log('Password changed (player side): ' + response.data.result.success);
         } else if (argv.rawdata) {
@@ -873,9 +760,7 @@ async function changePW(argv) {
     }
 
     try {
-        if (argv.verbose) {
-            console.log('Changing password in players.json');
-        }
+        logIfOption('Changing password in players.json', argv.verbose);
         // update password in players.json
         fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
             if (error) {
@@ -888,7 +773,9 @@ async function changePW(argv) {
             // add new player
             JSONdata[argv.playerName] = {
                 ipAddress: playerData[1],
-                password: argv.newPassword
+                username: playerData[0] || 'admin',
+                password: argv.newPassword,
+                storage: playerData[3] || 'sd'
             }
 
             // write new json object to file
@@ -898,7 +785,9 @@ async function changePW(argv) {
                     console.error('Error writing file: ', error);
                     return;
                 }
-                console.log('Password changed (locally): successful');
+                if (!argv.rawdata) {
+                    console.log('Password changed (locally): successful');
+                }
             });
         });
     } catch (err) {
@@ -919,25 +808,19 @@ async function checkPW(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Checking password of ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Checking password of ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/control/dws-password',
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         //console.log(response);
         //console.log(response.data.result.password);
         //console.log('Player has password set: ' + response.data.result.password.);
@@ -978,25 +861,19 @@ async function reboot(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Rebooting ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Rebooting ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
     let requestOptions = {
         method: 'PUT',
         url: 'http://' + playerData[1] + '/api/v1/control/reboot',
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
 
         //console.log(response);
         if (!argv.rawdata) {
@@ -1011,21 +888,17 @@ async function reboot(argv) {
 
 // add player locally function
 function addPlayer(argv) {
-    if (argv.verbose) {
-        console.log('Adding player locally');
-        console.log('Adding player ' + argv.playerName + ' with IP address ' + argv.ipAddress + ',  password ' + argv.password + 'and storage: ' + argv.storage + ' to players.json');
-        console.log('Opening players.json');
-    }
-    
+    logIfOption('Adding player locally', argv.verbose);
+    logIfOption('Adding player ' + argv.playerName + ' with IP address ' + argv.ipAddress + ',  password ' + argv.password + 'and storage: ' + argv.storage + ' to players.json', argv.verbose);
+    logIfOption('Opening players.json', argv.verbose);
+
     fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
         if (error) {
             console.error('Error reading file: ', error);
             return;
         }
-        if (argv.verbose) {
-            console.log('File opened successfully');
-            console.log('Parsing JSON data');
-        }
+        logIfOption('File opened successfully', argv.verbose);
+        logIfOption('Parsing JSON data', argv.verbose);
 
         // parse json object
         let JSONdata = JSON.parse(data);
@@ -1038,10 +911,8 @@ function addPlayer(argv) {
             storage: argv.storage
         }
 
-        if (argv.verbose) {
-            console.log('JSON data parsed successfully');
-            console.log('Writing new JSON data to file');
-        }
+        logIfOption('JSON data parsed successfully', argv.verbose);
+        logIfOption('Writing new JSON data to file', argv.verbose);
 
         // write new json object to file
         let modifiedData = JSON.stringify(JSONdata, null, 2);
@@ -1050,9 +921,7 @@ function addPlayer(argv) {
             console.error('Error writing file: ', error);
             return;
         }
-        if (argv.verbose) {
-            console.log('Data written to file successfully');
-        }
+        logIfOption('Data written to file successfully', argv.verbose);
         console.log('Player added successfully');
         });
     });
@@ -1061,11 +930,9 @@ function addPlayer(argv) {
 // remove player locally function
 function removePlayer(argv) {
 
-    if (argv.verbose) {
-        console.log('Removing player ' + argv.playerName + ' from players.json');
-        console.log('Removing player locally');
-        console.log('Opening players.json');
-    }
+    logIfOption('Removing player ' + argv.playerName + ' from players.json', argv.verbose);
+    logIfOption('Removing player locally', argv.verbose);
+    logIfOption('Opening players.json', argv.verbose);
 
     fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
         if (error) {
@@ -1073,26 +940,20 @@ function removePlayer(argv) {
         return;
         }
 
-        if (argv.verbose) {
-            console.log('players.json opened successfully');
-            console.log('Parsing JSON data');
-        }
+        logIfOption('File opened successfully', argv.verbose);
+        logIfOption('Parsing JSON data', argv.verbose);
 
         // parse json object
         let JSONdata = JSON.parse(data);
 
-        if (argv.verbose) {
-            console.log('JSON data parsed successfully');
-            console.log('Removing player from JSON data');
-        }
+        logIfOption('JSON data parsed successfully', argv.verbose);
+        logIfOption('Removing player from JSON data', argv.verbose);
 
         // remove player
         delete JSONdata[argv.playerName];
 
-        if (argv.verbose) {
-            console.log('Player removed from JSON data');
-            console.log('Writing new JSON data to file');
-        }
+        logIfOption('Player removed from JSON data', argv.verbose);
+        logIfOption('Writing new JSON data to file', argv.verbose);
 
         // write new json object to file
         let modifiedData = JSON.stringify(JSONdata, null, 2);
@@ -1102,9 +963,7 @@ function removePlayer(argv) {
                 return;
             }
 
-            if (argv.verbose) {
-                console.log('Data written to file successfully');
-            }
+            logIfOption('Data written to file successfully', argv.verbose);
 
             console.log('Player removed successfully');
         });
@@ -1123,25 +982,19 @@ async function getDeviceInfo(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Getting device info for ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Getting device info for ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
     let requestOptions = {
         method: 'GET',
         url: 'http://' + playerData[1] + '/api/v1/info',
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         console.log(response.data.result);
     } catch (err) {
         errorHandler(err);
@@ -1161,25 +1014,19 @@ async function screenshot(argv) {
         return;
     }
 
-    if (argv.verbose) {
-        console.log('Taking screenshot on ' + argv.playerName);
-        console.log('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2]);
-    }
+    logIfOption('Taking screenshot on ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
 
     let requestOptions = {
         method: 'POST',
         url: 'http://' + playerData[1] + '/api/v1/snapshot',
     };
 
-    if (argv.verbose) {
-        console.log('Sending ' + requestOptions.method + ' request to ' + requestOptions.url);
-    }
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
 
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-        if (argv.verbose) {
-            console.log('Response received! => ');
-        }
+        logIfOption('Response received! => ', argv.verbose);
         //console.log(response);
         if (!argv.rawdata) {
             console.log('Screenshot taken! Location: ' + response.data.result.filename);
@@ -1246,7 +1093,7 @@ async function generatePlayersJson() {
         };
         const getStorage = () => {
             return new Promise((resolve) => {
-                rl.question('Enter player storage type: ', resolve);
+                rl.question('Enter player storage type (sd/ssd): ', resolve);
             });
         };
 
@@ -1337,12 +1184,13 @@ async function requestFetch(requestOptions, user, pass) {
                     let resData = await response.json();
                     return resData;
                 } else {
-                    throw new ApiError('Response Error', response.status, response.headers.get('content-type'));
+                    
+                    throw new ApiError(response.statusText, response.status, response.headers.get('content-type'));
                 } 
             } 
             else {
-                //console.log(response);
-                throw new ApiError('Unexpected content type in response', response.status, response.headers.get('content-type'));
+                
+                throw new ApiError(response.statusText, response.status, response.headers.get('content-type'));
             }
             
         } else {
@@ -1512,6 +1360,11 @@ function helpChecker() {
     }
 }
 
+function logIfOption(msg, option) {
+    if (option) {
+        console.log(msg);
+    }
+}
 
 module.exports = {
     editPlayer, 
