@@ -5,16 +5,9 @@ const positionals = require('./positionalFunctions.js');
 
 // set up commands
 yargs.scriptName('bsc');
-yargs.usage('Built-in command usage: $0 <command> [options]');
+yargs.usage('Command usage: bsc <command> [options]');
 yargs.help();
 yargs.alias('h', 'help');
-
-// give examples of raw usage
-yargs.usage('Raw usage: bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawResponse]');
-yargs.usage('');
-yargs.usage('       Raw Request Examples:');
-yargs.usage('       bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"');
-yargs.usage('       bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"');
 
 
 // Get Device Info

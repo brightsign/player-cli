@@ -1,22 +1,105 @@
 # BrightSign CLI API Tool
+<p align="center">
+    <img src="./readmeMedia/PoweredByPurple.jpg" alt="Powered by Purple!" width="400" height="194">
+</p>
 The purpose of this package is to allow users to communicate with the BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs through a simple CLI tool, `bsc`. 
+
+[Local DWS APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs)
+
+## Table of Contents
+- [Use Cases](#use-cases)
+- [Installation](#installation)
+    - [NPM](#npm)
+    - [Build from Source](#build-from-source)
+    - [Check Installation](#check-installation)
+- [Configuring Players Locally](#configuring-players-locally)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
+- [Features](#features)
+- [Raw Requests:](#raw-requests)
+- [Formatting Responses](#formatting-responses)
+    - [jq examples](#jq-examples)
+
+
+## Use Cases
+- Interact with a BrightSign player on your local network
+- Push files to a player
+- Edit registry settings of a player
+- Get device info, registry dumps, logs and files from a player
+- Get and set a player's time
+- Reboot or factory reset a player
+- Change the DWS password of a player
+- Other miscellaneous features that the DWS frontend provides, but from the command line
+
+## Installation
+
+`bsc` is available as an npm package, and can also be built from the code in this repository. 
+
+### NPM
+This CLI is available on npm. To install it, run the following command:
+```bash
+npm install -g @brightsign/bsc
+```
+
+### Build from Source
+
+First, clone this repository to your preferred location. Once cloned, navigate to the directory that you stored this code in.
 
 It is assumed you have the requirements for doing basic node.js development already installed.  To support this example, you also need to run the following in this folder:
 
 ```bash
-npm i
+npm install
 ```
-
-Latest Local DWS REST API Documentation as of August 15, 2023.
-[Local DWS APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs)
-
-## Installing NPM Module from source
-First, clone this repository to your preferred location. Once cloned, navigate to the directory that you stored this code in.
 
 The following will need to be run to build the npm module. `bsc` will be built and ready to use. 
 
 ```bash
 npm -g install
+```
+
+### Check Installation
+
+After installing, run `bsc --help` without arguments to see usage options: 
+```
+Built-in command usage: bsc <command> [options]
+Raw usage: bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r
+<reqRoute> -a [rawResponse]
+
+Raw Request Examples:
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"
+bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"
+
+Commands:
+  bsc getdi <playerName>                    Get Device Info
+  bsc addplayer <playerName> <ipAddress>    Add a player
+  [username] [password] [storage]
+  bsc rmplayer <playerName>                 remove a player
+  bsc editplayer <playerName>               Update a player
+  bsc listplayers                           List all players
+  bsc reboot <playerName>                   Reboot a player
+  bsc checkpw <playerName>                  Check if player has a lDWS password
+  bsc setpw <playerName> [newPassword]      Change player lDWS password, enter
+                                            "" for no password
+  bsc screenshot <playerName>               Take a screenshot
+  bsc getlogs <playerName>                  Get logs
+  bsc raw                                   allow for raw input
+  bsc delfile <playerName> <file>           Delete a file
+  bsc putfile <playerName> <FileDirectory>  Put files on a player
+  [location]
+  bsc getfiles <playerName> [path]          Get files on player
+  bsc gettime <playerName>                  Get player time
+  bsc settime <playerName> <timezone>       Set player time
+  <time> <date> [applyTimezone]
+  bsc checkdws <playerName>                 Check if player has DWS enabled
+  bsc setdws <playerName> <onOff>           set DWS on/off
+  bsc getreg <playerName> [section] [key]   Get registry values
+  bsc setreg <playerName> <section> <key>   Edit registry values
+  <value>
+  bsc facreset <playerName>                 Factory reset player
+
+Options:
+      --version  Show version number                                   [boolean]
+  -h, --help     Show help                                             [boolean]
 ```
 
 ### Configuring Players Locally
@@ -45,6 +128,22 @@ Finally, to view your configuration file and the properties of each player, use:
 bsc listplayers
 ```
 
+#### Example players.json
+```json
+{
+  "exampleName": {
+    "ipAddress": "sss.sss.sss.sss",
+    "username": "admin",
+    "password": "password",
+    "storage": "sd"
+  }
+}
+```
+
+#### Locally stored players.json
+
+If you store a hidden file called `.players.json` in your current working directory, the CLI will prioritize that over the player storage stored in `~/.bsc`. This allows for easier organization of players and a much less cluttered players.json main file. 
+
 **Note** to use file upload, the password must not be set on the player. You can easily turn off the password using `setpw` or from the lDWS front end. This is a WIP and this doc will be updated when this functionality exists.
 
 ## Usage
@@ -54,6 +153,7 @@ This CLI uses a player configuration object to interact with your player(s). To 
 A list of commands and their structure can be seen by typing `bsc`, `bsc -h` or `bsc --help`. There's also a table of the currently supported features and their command structure below in the [features](#features) section. All commands (except `raw` and `listplayers`) use a 'playerName'. This is the name that you set in players.json. Some commands use 'positionals', or options that must be in a certain spot. These positionals are shown in the 'help' section and on the features table. Positionals listed with <> are required and ones with [] are optional. Certain commands also have options. Options are not defined by position but rather by a tag, for example `bsc editplayer playerName -i newIP`. In that example the new IP address is the option, defined by '-i'. Options can be in whatever order you want. For information on a command and its options, use `bsc command` with no positionals or options. 
 
 ## Troubleshooting
+
 Sometimes you will run into errors while using this CLI. The CLI has built in error handling that should give you information on the error you encountered as well as troubleshooting tips. However, the error handler does not have info on every possible error, so you may run into errors that are not handled. If this is the case, there are certain troubleshooting steps that you can walk through to hopefully fix your problem. 
 
 1. Check that you can communicate with the player
