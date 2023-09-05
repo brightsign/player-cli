@@ -49,6 +49,7 @@ function editPlayerPositional(yargs) {
     yargs.option('u', { alias: 'username', describe: 'New username', type: 'string', demandOption: false });
     yargs.option('p', { alias: 'password', describe: 'New password', type: 'string', demandOption: false });
     yargs.option('s', { alias: 'storage', describe: 'New storage type', type: 'string', demandOption: false });
+    yargs.option('n', { alias: 'newName', describe: 'New player name', type: 'string', demandOption: false });
 }
 
 function rebootPositional(yargs) {
