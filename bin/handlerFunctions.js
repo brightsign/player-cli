@@ -115,11 +115,22 @@ function editPlayer(argv) {
 }
   
 // list players
-function listPlayers() {
+async function listPlayers() {
     try {
-        playersJson = fs.readFileSync(CONFIG_FILE_PATH, 'utf8');
-        players = JSON.parse(playersJson);
-        console.log(players);
+        const localFilePath = currentPath.join(process.cwd(), '.players.json');
+        let localConfigExists = await fsp.access(localFilePath).then(() => true).catch(() => false);
+        
+        if (localConfigExists) {
+            playersJson = fs.readFileSync(localFilePath, 'utf8');
+            players = JSON.parse(playersJson);
+            console.log(players);
+        } else {
+            playersJson = fs.readFileSync(CONFIG_FILE_PATH, 'utf8');
+            players = JSON.parse(playersJson);
+            console.log(players);
+        }
+
+        
     } catch (err) {
         console.error('Error reading or parsing players.json: ', err);
     }
@@ -1150,17 +1161,38 @@ async function generatePlayersJson() {
 // get player info from players.json
 async function pullData(argv) {
 
-    const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
+    // First, check for .players.json file in local directory
+    // if that exists, use it
+    // if not, use CONFIG_FILE_PATH
+    const localFilePath = currentPath.join(process.cwd(), '.players.json');
 
-    if (typeof players[argv.playerName] === "undefined") {
-        throw new playerNameError('Player not found', errorTypes.badPlayerName);
+    let localConfigExists = await fsp.access(localFilePath).then(() => true).catch(() => false);
+    if (localConfigExists) {
+        const players = JSON.parse(fs.readFileSync(localFilePath, 'utf8'));
+        if (typeof players[argv.playerName] === "undefined") {
+            throw new playerNameError('Player not found', errorTypes.badPlayerName);
+        } else {
+            let playerUser = players[argv.playerName].username;
+            let playerIP = players[argv.playerName].ipAddress;
+            let playerPW = players[argv.playerName].password;
+            let playerStorage = players[argv.playerName].storage;
+
+            let returnArr = [playerUser, playerIP, playerPW, playerStorage];
+            return returnArr;
+        }
     } else {
-        let playerUser = players[argv.playerName].username;
-        let playerIP = players[argv.playerName].ipAddress;
-        let playerPW = players[argv.playerName].password;
+        const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
+        if (typeof players[argv.playerName] === "undefined") {
+            throw new playerNameError('Player not found', errorTypes.badPlayerName);
+        } else {
+            let playerUser = players[argv.playerName].username;
+            let playerIP = players[argv.playerName].ipAddress;
+            let playerPW = players[argv.playerName].password;
+            let playerStorage = players[argv.playerName].storage;
 
-        let returnArr = [playerUser, playerIP, playerPW];
-        return returnArr;
+            let returnArr = [playerUser, playerIP, playerPW, playerStorage];
+            return returnArr;
+        }
     }
 }
 
@@ -1356,6 +1388,53 @@ function helpChecker() {
             console.log('Push file: bsc putfile playerName <pathToFileLocally> [directoryOnPlayer]');
             console.log('Push directory: bsc putfile playerName <pathToDirectoryLocally> [directoryOnPlayer]');
             console.log('Please note that the \'locationOnPlayer\' argument is a DIRECTORY on the player, not the file name that you want to push to. If you do not specify a directory location, the file will be pushed to the root directory of the player storage.');
+        }
+        else if (rawArgs.includes('raw')){
+            // give examples of raw usage
+            console.log('Raw usage: bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawResponse] -f [fileToUpload]');
+            console.log('Raw Request Examples:');
+            console.log('bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"');
+            console.log('bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"');
+        }
+        else if (rawArgs.includes('addplayer')) {
+            console.log('Example player addition: ');
+            console.log('bsc addplayer <playerName> <playerIP> [playerPassword] [playerUsername] [playerStorageType]');
+            console.log('Defaults: playerPassword = blank, playerUsername = admin, playerStorageType = sd');
+            console.log('Storage types are: sd, ssd')
+        }
+        else if (rawArgs.includes('rmplayer')) {
+            console.log('Example player removal: ');
+            console.log('bsc rmplayer <playerName>');
+        }
+        else if (rawArgs.includes('getfiles')) {
+            console.log('Example getfiles usage: ');
+            console.log('bsc getfiles <playerName> [pathOnPlayer]');
+            console.log('By default, the path is the root directory of the player storage.');
+            console.log('The path option is specifically for directories on the player, not files.');
+        }
+        else if (rawArgs.includes('settime')) {
+            console.log('Example settime usage: ');
+            console.log('bsc settime <playerName> <timezone> <time> <date> [applyTimezone]');
+            console.log('Timezone is in three letter format, such as EST or PST');
+            console.log('Time is in format of HH:MM:SS');
+            console.log('Date is in format of YYYY-MM-DD');
+            console.log('applyTimezone is a boolean, and is optional. If not specified, it will default to true. When true, the specified timezone will be applied. When false, UTC will be used.');
+        }
+        else if (rawArgs.includes('setdws')) {
+            console.log('Example setdws usage: ');
+            console.log('bsc setdws <playerName> <onOff>');
+            console.log('onOff is literally "on" or "off". Note that turning off dws will turn off the APIs that this CLI interacts with, so you will not be able to use this CLI to interact with the player until DWS is turned back on.');
+        }
+        else if (rawArgs.includes('getreg')) {
+            console.log('Example getreg usage: ');
+            console.log('bsc getreg <playerName> [section] [key]');
+            console.log('Section and key are optional. If not specified, all sections and keys will be returned.');
+            console.log('To get networking registry: bsc getreg playername networking');
+        }
+        else if (rawArgs.includes('setreg')) {
+            console.log('Example setreg usage: ');
+            console.log('bsc setreg <playerName> <section> <key> <value>');
+            console.log('Set bbhf to false: bsc setreg playername networking bbhf false')
         }
     }
 }

@@ -29,7 +29,7 @@ function addPlayerPositional(yargs) {
         type: 'string',
         default: 'sd',
         describe: 'player storage type'
-    })
+    });
 }
 
 function rmPlayerPositional(yargs) {

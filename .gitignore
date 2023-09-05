@@ -4,5 +4,4 @@ package-lock.json
 testFiles
 players.json
 *.log
-.vscode
-.players.json
+.vscode/*
