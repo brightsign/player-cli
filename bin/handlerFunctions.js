@@ -96,6 +96,12 @@ function editPlayer(argv) {
             console.log('new storage inputted');
             JSONdata[playerName].storage = playerSetStorage;
         }
+        if (argv.newName) {
+            console.log('new player name inputted');
+            JSONdata[argv.newName] = JSONdata[playerName];
+            delete JSONdata[playerName];
+            playerName = argv.newName;
+        }
 
         logIfOption('New JSON object created', argv.verbose);
         logIfOption('Stringifying new JSON object and writing to players.json', argv.verbose);
