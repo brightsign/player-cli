@@ -1012,7 +1012,10 @@ async function getDeviceInfo(argv) {
     try {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         logIfOption('Response received! => ', argv.verbose);
-        console.log(response.data.result);
+        let resString = JSON.stringify(response.data.result);
+        
+        logIfOption(resString, argv.rawdata);
+        logIfOption(response.data.result, !argv.rawdata);
     } catch (err) {
         errorHandler(err);
     }
