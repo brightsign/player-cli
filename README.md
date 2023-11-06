@@ -1,12 +1,13 @@
 # BrightSign CLI API Tool
-<p align="center">
-    <img src="./readmeMedia/PoweredByPurple.jpg" alt="Powered by Purple!" width="400" height="194">
-</p>
-The purpose of this package is to allow users to communicate with the BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs through a simple CLI tool, `bsc`. 
 
-[Local DWS APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs)
+<p align="center">
+   <a href="https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs"><img src="./readmeMedia/PoweredByPurple.jpg" alt="Powered by Purple!" width="400" height="194"></a>
+</p>
+
+The purpose of this package is to allow users to communicate with the [BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs) through a simple CLI tool, `bsc`. 
 
 ## Table of Contents
+
 - [Use Cases](#use-cases)
 - [Installation](#installation)
     - [NPM](#npm)
@@ -22,6 +23,7 @@ The purpose of this package is to allow users to communicate with the BrightSign
 
 
 ## Use Cases
+
 - Interact with a BrightSign player on your local network
 - Push files to a player
 - Edit registry settings of a player
@@ -36,6 +38,7 @@ The purpose of this package is to allow users to communicate with the BrightSign
 `bsc` is available as an npm package, and can also be built from the code in this repository. 
 
 ### NPM
+
 This CLI is available on npm. To install it, run the following command:
 ```bash
 npm install -g @brightsign/bsc
@@ -103,6 +106,7 @@ Options:
 ```
 
 ### Configuring Players Locally
+
 For ease of use this CLI has introduced a locally stored player configuration object. This object stores relevant player information under a "playerName" (that you choose, independent of the player's name in BACon, bDeploy, or any other service where player names are required), allowing the player to be interacted with at the command line by just using the player name. This configuration object is stored in a hidden directory on your home directory path, or `~/.bsc/players.json`, and is automatically generated when you use the CLI.
 
 When you first try and use a command, if you have not configured the CLI for at least one player, the command will not be run and instead you will be prompted to configure your first player. Simply enter the name you want to give to your player, the ip address, the username and the password of the player, and the player's storage device. Remember that by default, the player's digest authentication username is 'admin' and the password is the serial number. Additionally, the CLI will automatically set the username to 'admin' and the storage device to 'sd' if those fields are left blank.
@@ -129,6 +133,7 @@ bsc listplayers
 ```
 
 #### Example players.json
+
 ```json
 {
   "exampleName": {
@@ -170,7 +175,6 @@ Sometimes you will run into errors while using this CLI. The CLI has built in er
 
 **Note**: We ask that if you encounter an error that is not handled by the error handler (if the error is an API error, the error handler will tell you if it doesn't have info on your error. If it's another type of error, that error will be printed on you command line) that you open a Github issue and report it. This will allow the dev team to implement error handling around your error. 
 
-
 ## Features
 
 | Feature | Implemented? | Function | Usage |
@@ -197,8 +201,8 @@ Sometimes you will run into errors while using this CLI. The CLI has built in er
 | getreg | [x] | Gets the registry | bsc getreg \<playerName> [section] [key] |
 | setreg | [x] | Edits certain sections of the registry | bsc editreg \<playerName> \<section> \<key> \<value> |
 
-
 ## Raw Requests:
+
 bsc also supports raw API requests:
 ```
 bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r <reqRoute> -a [rawResponse]
