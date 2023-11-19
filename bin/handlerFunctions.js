@@ -2,15 +2,13 @@ const fs = require('fs');
 const fsp = fs.promises;
 const formData = require('form-data');
 let currentPath = require('path'); // for absolute path
-//const players = require('./players.json');
 const fetch = require('node-fetch');
-const os = require('os');
+const { homedir } = require('os');
 const readline = require('readline');
 const fetchDigest = require('digest-fetch');
 const statusCodes = require('http-status');
-const { argv } = require('process');
-const { log } = require('console');
-const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
+
+const HOME_CONFIG_FILE_PATH = currentPath.join(homedir(), '.bsc', 'players.json');
 
 // Define error types
 const errorTypes = {
@@ -56,7 +54,8 @@ class playerNameError extends Error {
 function editPlayer(argv) {
   
     // check if player exists
-    const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
+    const configFilePath = getConfigPath();
+    const players = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
     if (typeof players[argv.playerName] === "undefined") {
         errorHandler(new playerNameError('Player not found', errorTypes.badPlayerName));
     }
@@ -70,7 +69,7 @@ function editPlayer(argv) {
     logIfOption('Editing player ' + playerName, argv.verbose);
     logIfOption('Opening players.json', argv.verbose);
   
-    fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
+    fs.readFile(configFilePath, 'utf8', (error, data) => {
         if (error) {
             console.error('Error reading players.json: ', error);
         }
@@ -109,7 +108,7 @@ function editPlayer(argv) {
         // stringify the new json object
         let newJSONdata = JSON.stringify(JSONdata, null, 2);
         // write to the file
-        fs.writeFile(CONFIG_FILE_PATH, newJSONdata, 'utf8', (error) => {
+        fs.writeFile(configFilePath, newJSONdata, 'utf8', (error) => {
             if (error) {
                 console.error('Error writing file: ', error);
                 return;
@@ -123,20 +122,10 @@ function editPlayer(argv) {
 // list players
 async function listPlayers() {
     try {
-        const localFilePath = currentPath.join(process.cwd(), '.players.json');
-        let localConfigExists = await fsp.access(localFilePath).then(() => true).catch(() => false);
-        
-        if (localConfigExists) {
-            playersJson = fs.readFileSync(localFilePath, 'utf8');
-            players = JSON.parse(playersJson);
-            console.log(players);
-        } else {
-            playersJson = fs.readFileSync(CONFIG_FILE_PATH, 'utf8');
-            players = JSON.parse(playersJson);
-            console.log(players);
-        }
-
-        
+        // check if player exists
+        const configFilePath = getConfigPath();
+        const players = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+        console.log(players);
     } catch (err) {
         console.error('Error reading or parsing players.json: ', err);
     }
@@ -779,7 +768,8 @@ async function changePW(argv) {
     try {
         logIfOption('Changing password in players.json', argv.verbose);
         // update password in players.json
-        fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
+        const configFilePath = getConfigPath();
+        fs.readFile(configFilePath, 'utf8', (error, data) => {
             if (error) {
                 console.error('Error reading file: ', error);
                 return;
@@ -797,7 +787,7 @@ async function changePW(argv) {
 
             // write new json object to file
             let modifiedData = JSON.stringify(JSONdata, null, 2);
-            fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
+            fs.writeFile(configFilePath, modifiedData, 'utf8', (error) => {
                 if (error) {
                     console.error('Error writing file: ', error);
                     return;
@@ -909,7 +899,8 @@ function addPlayer(argv) {
     logIfOption('Adding player ' + argv.playerName + ' with IP address ' + argv.ipAddress + ',  password ' + argv.password + 'and storage: ' + argv.storage + ' to players.json', argv.verbose);
     logIfOption('Opening players.json', argv.verbose);
 
-    fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
+    const configFilePath = getConfigPath();
+    fs.readFile(configFilePath, 'utf8', (error, data) => {
         if (error) {
             console.error('Error reading file: ', error);
             return;
@@ -933,7 +924,7 @@ function addPlayer(argv) {
 
         // write new json object to file
         let modifiedData = JSON.stringify(JSONdata, null, 2);
-        fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
+        fs.writeFile(configFilePath, modifiedData, 'utf8', (error) => {
         if (error) {
             console.error('Error writing file: ', error);
             return;
@@ -951,7 +942,8 @@ function removePlayer(argv) {
     logIfOption('Removing player locally', argv.verbose);
     logIfOption('Opening players.json', argv.verbose);
 
-    fs.readFile(CONFIG_FILE_PATH, 'utf8', (error, data) => {
+    const configFilePath = getConfigPath();
+    fs.readFile(configFilePath, 'utf8', (error, data) => {
         if (error) {
         console.error('Error reading file: ', error);
         return;
@@ -974,7 +966,7 @@ function removePlayer(argv) {
 
         // write new json object to file
         let modifiedData = JSON.stringify(JSONdata, null, 2);
-        fs.writeFile(CONFIG_FILE_PATH, modifiedData, 'utf8', (error) => {
+        fs.writeFile(configFilePath, modifiedData, 'utf8', (error) => {
             if (error) {
                 console.error('Error writing file: ', error);
                 return;
@@ -1078,10 +1070,10 @@ function confirmDangerousCommand(prompt, callback) {
 
 // generate players.json file if it doesn't exist
 async function generatePlayersJson() {
-    let fileExists = await fsp.access(CONFIG_FILE_PATH).then(() => true).catch(() => false);
+    const configFilePath = getConfigPath();
+    let fileExists = await fsp.access(configFilePath).then(() => true).catch(() => false);
     try {
         if (fileExists === true) {
-            //console.log('Players config file already exists');
             return;
         }
 
@@ -1157,8 +1149,8 @@ async function generatePlayersJson() {
             });
         const playersDefaultString = JSON.stringify(playersDefault, null, 2);
 
-        await fsp.mkdir(currentPath.join(os.homedir(), '.bsc'), { recursive: true });
-        await fsp.writeFile(CONFIG_FILE_PATH, playersDefaultString);
+        await fsp.mkdir(currentPath.join(homedir(), '.bsc'), { recursive: true });
+        await fsp.writeFile(HOME_CONFIG_FILE_PATH, playersDefaultString);
 
         console.log('Players config file generated successfully');
 
@@ -1169,39 +1161,19 @@ async function generatePlayersJson() {
 
 // get player info from players.json
 async function pullData(argv) {
+    const configFilePath = getConfigPath();
+    const players = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
 
-    // First, check for .players.json file in local directory
-    // if that exists, use it
-    // if not, use CONFIG_FILE_PATH
-    const localFilePath = currentPath.join(process.cwd(), '.players.json');
-
-    let localConfigExists = await fsp.access(localFilePath).then(() => true).catch(() => false);
-    if (localConfigExists) {
-        const players = JSON.parse(fs.readFileSync(localFilePath, 'utf8'));
-        if (typeof players[argv.playerName] === "undefined") {
-            throw new playerNameError('Player not found', errorTypes.badPlayerName);
-        } else {
-            let playerUser = players[argv.playerName].username;
-            let playerIP = players[argv.playerName].ipAddress;
-            let playerPW = players[argv.playerName].password;
-            let playerStorage = players[argv.playerName].storage;
-
-            let returnArr = [playerUser, playerIP, playerPW, playerStorage];
-            return returnArr;
-        }
+    if (typeof players[argv.playerName] === "undefined") {
+        throw new playerNameError('Player not found', errorTypes.badPlayerName);
     } else {
-        const players = JSON.parse(fs.readFileSync(CONFIG_FILE_PATH, 'utf8'));
-        if (typeof players[argv.playerName] === "undefined") {
-            throw new playerNameError('Player not found', errorTypes.badPlayerName);
-        } else {
-            let playerUser = players[argv.playerName].username;
-            let playerIP = players[argv.playerName].ipAddress;
-            let playerPW = players[argv.playerName].password;
-            let playerStorage = players[argv.playerName].storage;
+        let playerUser = players[argv.playerName].username;
+        let playerIP = players[argv.playerName].ipAddress;
+        let playerPW = players[argv.playerName].password;
+        let playerStorage = players[argv.playerName].storage;
 
-            let returnArr = [playerUser, playerIP, playerPW, playerStorage];
-            return returnArr;
-        }
+        let returnArr = [playerUser, playerIP, playerPW, playerStorage];
+        return returnArr;
     }
 }
 
@@ -1314,7 +1286,10 @@ async function getFiles(path) {
 // check if config exists function
 function checkConfigExists() {
     let exists;
-    if (!fs.existsSync(CONFIG_FILE_PATH)) {
+    let configFilePath = getConfigPath();
+
+    console.log(`checkConfigExists() configFilePath: ${configFilePath}`);
+    if (configFilePath === undefined) {
         console.log('Players config file does not exist, creating...');
         exists = false;
         return exists;
@@ -1322,6 +1297,26 @@ function checkConfigExists() {
         exists = true;
         return exists;
     }
+}
+
+function getConfigPath() {
+  // Config file priority order
+  // 1. local config file (./.players.json)
+  // 2. local bsc config file (./.bsc/.players.json)
+  // 3. home config file (/home/user/.bsc/.players.json)
+
+  let configFilePaths = [
+    currentPath.join(process.cwd(), '.players.json'),
+    currentPath.join(process.cwd(), '.bsc', 'players.json'),
+    HOME_CONFIG_FILE_PATH
+  ];
+
+  for (let i = 0; i < configFilePaths.length; i++) {
+    if (fs.existsSync(configFilePaths[i])) {
+      console.log(`getConfigPath() configFilePaths[i]: ${configFilePaths[i]}`);
+      return configFilePaths[i];
+    }
+  }
 }
 
 function errorHandler(err) {
