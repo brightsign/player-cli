@@ -1,13 +1,14 @@
 # BrightSign CLI API Tool
 
 <p align="center">
-   <a href="https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs"><img src="./readmeMedia/PoweredByPurple.jpg" alt="Powered by Purple!" width="400" height="194"></a>
+   <a href="https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs"><img src="https://raw.githubusercontent.com/brightsign/player-cli/main/readmeMedia/PoweredByPurple.jpg" alt="Powered by Purple!" width="400" height="194"></a>
 </p>
 
 The purpose of this package is to allow users to communicate with the [BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs) through a simple CLI tool, `bsc`. 
 
 ## Table of Contents
 
+- [Getting Started](#getting-started)
 - [Use Cases](#use-cases)
 - [Installation](#installation)
     - [NPM](#npm)
@@ -21,6 +22,17 @@ The purpose of this package is to allow users to communicate with the [BrightSig
 - [Formatting Responses](#formatting-responses)
     - [jq examples](#jq-examples)
 
+## Getting Started
+Install from NPM, 
+```bash
+npm install -g @brightsign/bsc
+```
+
+add a player,
+```
+bsc addplayer <playerName> <ipAddress> [username] [password] [storage]
+bsc getdi <playerName>
+```
 
 ## Use Cases
 
@@ -107,14 +119,17 @@ Options:
 
 ### Configuring Players Locally
 
+Add a player, 
+
+```bash
+bsc addplayer <playerName> <ipAddress> [username] [password] [storage]
+```
+
 For ease of use this CLI has introduced a locally stored player configuration object. This object stores relevant player information under a "playerName" (that you choose, independent of the player's name in BACon, bDeploy, or any other service where player names are required), allowing the player to be interacted with at the command line by just using the player name. This configuration object is stored in a hidden directory on your home directory path, or `~/.bsc/players.json`, and is automatically generated when you use the CLI.
 
 When you first try and use a command, if you have not configured the CLI for at least one player, the command will not be run and instead you will be prompted to configure your first player. Simply enter the name you want to give to your player, the ip address, the username and the password of the player, and the player's storage device. Remember that by default, the player's digest authentication username is 'admin' and the password is the serial number. Additionally, the CLI will automatically set the username to 'admin' and the storage device to 'sd' if those fields are left blank.
 
-Once the CLI has generated the player configuration object, you can freely add, remove and edit the players stored within it. To add a new player, use:
-```
-bsc addplayer <playerName> <ipAddress> [username] [password] [storage]
-```
+Once the CLI has generated the player configuration object, you can freely add, remove and edit the players stored within it.
 
 You can remove players from your configuration with: 
 ```
@@ -152,6 +167,10 @@ If you store a hidden file called `.players.json` in your current working direct
 **Note** to use file upload, the password must not be set on the player. You can easily turn off the password using `setpw` or from the lDWS front end. This is a WIP and this doc will be updated when this functionality exists.
 
 ## Usage
+
+```bash
+bsc addplayers
+```
 
 This CLI uses a player configuration object to interact with your player(s). To configure the CLI to interact with a player, refer to [configuring players locally](#configuring-players-locally). 
 
