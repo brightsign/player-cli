@@ -1473,5 +1473,6 @@ module.exports = {
     screenshot,
     generatePlayersJson,
     checkConfigExists,
-    helpChecker
+    helpChecker,
+    getConfigPath,
 };
