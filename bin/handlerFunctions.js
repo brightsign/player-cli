@@ -1,6 +1,6 @@
 const fs = require('fs');
 const fsp = fs.promises;
-const formData = require('form-data');
+const FormData = require('form-data');
 let currentPath = require('path'); // for absolute path
 //const players = require('./players.json');
 const fetch = require('node-fetch');
@@ -8,6 +8,7 @@ const os = require('os');
 const readline = require('readline');
 const fetchDigest = require('digest-fetch');
 const statusCodes = require('http-status');
+const crypto = require('crypto');
 const { argv } = require('process');
 const { log } = require('console');
 const CONFIG_FILE_PATH = currentPath.join(os.homedir(), '.bsc', 'players.json');
@@ -49,6 +50,35 @@ class playerNameError extends Error {
         this.name = 'playerNameError';
         this.type = type;
     }
+}
+
+function computeDigestHeader({
+  wwwAuthenticateHeader,
+  username,
+  password,
+  method,
+  url,
+}) {
+  const authParams = wwwAuthenticateHeader
+    .match(/(realm|qop|nonce|opaque)="([^"]+)"/gi)
+    .reduce((params, match) => {
+      const [_, key, value] = match.match(/([^=]+)="([^"]+)"/i);
+      params[key.toLowerCase()] = value;
+      return params;
+    }, {});
+
+  const nc = '00000001';
+  const cnonce = crypto.randomBytes(8).toString('hex');
+
+  const { realm, nonce, qop, opaque } = authParams;
+
+  const hash = (data) => crypto.createHash('md5').update(data).digest('hex');
+
+  const ha1 = hash(`${username}:${realm}:${password}`);
+  const ha2 = hash(`${method.toUpperCase()}:${url}`);
+  const response = hash(`${ha1}:${nonce}:${nc}:${cnonce}:${qop}:${ha2}`);
+
+  return `Digest username="${username}", realm="${realm}", nonce="${nonce}", uri="${url}", response="${response}", qop=${qop}, nc=${nc}, cnonce="${cnonce}", opaque="${opaque}"`;
 }
 
 // Handle commands
@@ -612,7 +642,7 @@ async function handleRawRequest(argv) {
     logIfOption('Full URL: ' + requestOptions.url, argv.verbose);
 
     if (fileRaw != null) {
-        let form = new formData();
+        let form = new FormData();
         let fileToUpload = fs.createReadStream(fileRaw);
         console.log('Uploading file: ', fileRaw);
         form.append("file", fileToUpload, {filename: fileRaw});
@@ -636,100 +666,68 @@ async function handleRawRequest(argv) {
 }
 
 // put file function
-async function push(argv) {
-    // get player data from argv
-    let playerData;
-    try {
-        playerData = await pullData(argv);
-        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
-    } catch (err) {
-        errorHandler(err);
-        return;
-    }
+async function pushFile(file, requestOptions, playerData, isRawData, isVerbose) {
+    logIfOption(`Pushing file: ${file}`, isVerbose);
 
-    logIfOption('Pushing file(s) to ' + argv.playerName, argv.verbose);
-    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
-
-    let requestOptions = {
-        method: 'PUT',
-        url: 'http://' + playerData[1] + '/api/v1/files/sd/' + argv.location,
-    };
-
-    // check if file or directory
-    let path = argv.FileDirectory;
-    let absPath = currentPath.resolve(path);
-    let isFile;
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(file));
+    requestOptions.body = formData;
+    requestOptions.headers = formData.getHeaders();
 
     try {
-        isFile = await checkDir(path);
-        logIfOption('Checking if provided path is a file or directory', argv.verbose)
+        const response = await requestFetch(
+            requestOptions,
+            playerData[0],
+            playerData[2],
+            file
+        );
+        
+        if (!isRawData) {
+            console.log(`${response.data.result.results} uploaded: ${response.data.result.success}`);
+        } else if (isRawData) {
+            let resString = JSON.stringify(response.data.result);
+            logIfOption(resString, isRawData);
+        }
     } catch (err) {
         errorHandler(err);
     }
+}
 
-    if (isFile === true) {
-        logIfOption('Provided path is a file', argv.verbose)
+async function push(argv){
+    try {
+        const playerData = await pullData(argv); // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+        const path = argv.FileDirectory;
+        const absPath = currentPath.resolve(path);
+        // check if file or directory
+        const isFile = await checkDir(path);
+        const requestOptions = {
+            method: 'PUT',
+            url: `http://${playerData[1]}/api/v1/files/${
+                argv.location.length ? argv.location : 'sd'
+            }`,
+        };
 
-        let form = new formData();
-        let fileToUpload = fs.createReadStream(path);
-        form.append("file", fileToUpload, {filename: path});
-        requestOptions.body = form;
-        logIfOption('FormData created and appended to request body', argv.verbose)
-
-        // if file, push file
-        
-
-        try {
-            logIfOption('pushing file: ' + absPath, argv.verbose);
-            logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
-            let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-            logIfOption('Response received! => ', argv.verbose);
-            
-            if (!argv.rawdata) {
-                console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
-            } else if (argv.rawdata) {
-                console.log(response.data.result);
-            }
-        } catch (err) {
-            errorHandler(err);
-        }
-    } else if (isFile === false){
-        logIfOption('Provided path is a directory', argv.verbose);
-        logIfOption('getting files...', argv.verbose);
-        
-        try {
-            files = await getFiles(path);
-        } catch (err) {
-            console.log('Error getting files from directory!');
-            console.error(err);
+        if (isFile) {
+            await pushFile(absPath, requestOptions, playerData, argv.rawdata, argv.verbose);
+            return;
         }
 
-        // if directory, push directory
-        //console.log('pushing directory'); 
-        for (i = 0; i < files.length; i++) {
-
-            let fileToUpload = fs.createReadStream(files[i]);
-
-            let form = new formData();
-            form.append('file', fileToUpload, {filename: files[i]});
-            requestOptions.body = form;
-            
-            logIfOption('FormData created and appended to request body', argv.verbose);
-            logIfOption('Pushing ' + files[i], argv.verbose);
-
-            try {
-                logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
-                let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
-                logIfOption('Response received! => ', argv.verbose);
-                if (!argv.rawdata) {
-                    console.log(response.data.result.results + ' uploaded: ' + response.data.result.success);
-                } else if (argv.rawdata) {
-                    console.log(response.data.result);
-                }
-            } catch (err) {
-                errorHandler(err);
-            }
+        const files = await getFiles(path);
+        for (const file of files) {
+            await pushFile(file, requestOptions, playerData);
         }
+    } catch (err) {
+        console.log('An error occurred:', err);
+        errorHandler(err);
+    }
+}
+
+async function checkDir(path) {
+    try {
+        const stats = await fsp.stat(path);
+        return stats.isFile();
+    } catch (err) {
+        throw new Error('Failed to check if the path is a file or directory.');
     }
 }
 
@@ -771,7 +769,6 @@ async function changePW(argv) {
         } else if (argv.rawdata) {
             console.log(response.data.result)
         }
-        //console.log(response);
     } catch (err) {
         errorHandler(err);
     }
@@ -1206,90 +1203,66 @@ async function pullData(argv) {
 }
 
 // request fetch function
-async function requestFetch(requestOptions, user, pass) {
-    let succReturnContentType = 'application/json; charset=utf-8';
+async function requestFetch(requestOptions, user, pass, filePath) {
+  const { url, ...options } = requestOptions;
+  let succReturnContentType = 'application/json; charset=utf-8';
 
-    try {
-        if (pass !== "" && typeof pass !== "undefined") {
-            //console.log('Password set, using digest auth')
-            //console.log(user);
-            if (typeof user === "undefined" || user === "") {
-                user = "admin";
-            }
-            let digestClient = new fetchDigest(user, pass);
-            let response = await digestClient.fetch(requestOptions.url, requestOptions);
-            //console.log(response.headers);
-            
-            if (response.headers.get('content-type') == succReturnContentType) { //indicates successful response -> errors will be returned as plain text
-                if (response.status >= miscErrorInfo.successMin && response.status <= miscErrorInfo.successMax) {
-                    let resData = await response.json();
-                    return resData;
-                } else {
-                    
-                    throw new ApiError(response.statusText, response.status, response.headers.get('content-type'));
-                } 
-            } 
-            else {
-                
-                throw new ApiError(response.statusText, response.status, response.headers.get('content-type'));
-            }
-            
-        } else {
-            //console.log('No password set, using no auth')
-            
-            let response = await fetch(requestOptions.url, requestOptions);
-            //console.log(response);
-            //console.log(response.headers.get('content-type'));
+  try {
+    let response = await fetch(url, options);
+    if (response.status === 401 && response.headers.has('www-authenticate')) {
+      const wwwAuthenticateHeader = response.headers.get('www-authenticate');
+      const digestHeader = await computeDigestHeader({
+        wwwAuthenticateHeader,
+        username: user,
+        password: pass,
+        method: options.method,
+        url,
+      });
 
-            if (response.headers.get('content-type') == succReturnContentType) { //indicates successful response -> errors will be returned as plain text
-                if (response.status >= miscErrorInfo.successMin && response.status <= miscErrorInfo.successMax) {
-                    let resData = await response.json();
-                    return resData;
-                } else {
-                    throw new ApiError('Response Error', response.status, response.headers.get('content-type'));
-                } 
-            } 
-            else {
-                //console.log(response);
-                throw new ApiError('Unexpected content type in response', response.status, response.headers.get('content-type'));
-            }
-        }
-    } catch (err) {
-        throw err;
+      let headers = {
+        ...options.headers,
+        Authorization: digestHeader,
+      };
+
+      let body = options.body;
+
+      if (filePath) {
+        const formData = new FormData();
+        formData.append('file', fs.createReadStream(filePath));
+        headers = {
+          ...formData.getHeaders(),
+          Authorization: digestHeader,
+        };
+        body = formData;
+      }
+
+      response = await fetch(url, {
+        method: options.method,
+        headers: headers,
+        body: body,
+      });
     }
-}
 
-// check if location is directory function
-async function checkDirOld(path) {
-    return new Promise((resolve, reject) => {
-        fs.stat(path, (err, stats) => {
-            if (err) {
-                reject(err);
-            }
-            if (stats.isFile()) {
-                return true;
-            } else if (stats.isDirectory()) {
-                return false;
-            } else {
-                throw new Error('Provided path is neither file nor directory');
-            }
-        });
-    });
-}
-
-async function checkDir(path) {
-    try {
-        const stats = await fsp.stat(path);
-        if (stats.isFile()) {
-            return true;
-        } else if (stats.isDirectory()) {
-            return false;
-        } else {
-            throw new Error('Provided path is neither file nor directory');
-        }
-    } catch (err) {
-        throw err;
+    if (response.headers.get('content-type') === succReturnContentType) {
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new ApiError(
+          'Response Error',
+          response.status,
+          response.headers.get('content-type')
+        );
+      }
+    } else {
+      throw new ApiError(
+        'Unexpected content type in response',
+        response.status,
+        response.headers.get('content-type')
+      );
     }
+  } catch (err) {
+    throw err;
+  }
 }
 
 // get files in directory function
