@@ -688,7 +688,7 @@ async function pushFile(file, destination, playerData, isRawData, isVerbose) {
         );
         
         if (!isRawData) {
-            console.log(`${response.data.result.results} uploaded: ${response.data.result.success}`);
+            console.log(`File ${response.data.result.results} uploaded: ${response.data.result.success}`);
         } else if (isRawData) {
             let resString = JSON.stringify(response.data.result);
             logIfOption(resString, isRawData);
@@ -709,8 +709,77 @@ async function pushDir(path, destination, playerData, isRawData, isVerbose){
         }
         else {
             let subDestination = appendFilePath(destination, file);
+            if(!await directoryExists(subDestination, playerData, isRawData, isVerbose)) {
+                await createDirectory(subDestination, playerData, isRawData, isVerbose);
+            }
             await pushDir(fullPath, subDestination, playerData, isRawData, isVerbose);
         }
+    }
+}
+
+// put file function
+async function createDirectory(destination, playerData, isRawData, isVerbose) {
+    logIfOption(`Creating Directory: ${destination}`, isVerbose);
+
+    //ensure it ends with a slash
+    destination += destination[destination.length - 1] != '/' ? '/' : '';
+
+    const requestOptions = {
+        method: 'PUT',
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + destination,
+    };
+
+    try {
+        const response = await requestFetch(
+            requestOptions,
+            playerData[0],
+            playerData[2]
+        );
+
+        if (!isRawData) {
+            console.log(`Directory ${destination} created: ${response.data.result.success}`);
+        } else if (isRawData) {
+            let resString = JSON.stringify(response.data.result);
+            logIfOption(resString, isRawData);
+        }
+    } catch (err) {
+        errorHandler(err);
+    }
+}
+
+async function directoryExists(path, playerData, isRawData, isVerbose) {
+    let requestOptions = {
+        method: 'GET',
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + path,
+    };
+
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, isVerbose);
+
+    try {
+        let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        logIfOption('Response received! => ', isVerbose);
+        if (!isRawData) {
+            logIfOption(response.data.result.files, isVerbose);
+        } else if (isRawData) {
+            logIfOption(response.data.result, isVerbose);
+        }
+
+        if(response.data.result.files !== undefined) {
+            logIfOption(`Directory ${path} already exists`, isVerbose);
+            return true;
+        }
+        else {
+            logIfOption(`Path ${path} exists but is not a directory`, isVerbose);
+            return false;
+        }
+    } catch (err) {
+        if(err instanceof ApiError) {
+            if(err.status === 404) {
+                logIfOption(`Directory ${path} does not exist`, isVerbose);
+                return false;
+            }
+        }
+        errorHandler(err);
     }
 }
 
@@ -734,6 +803,9 @@ async function push(argv){
             return;
         }
         else {
+            if(!await directoryExists(destination, playerData, argv.rawdata, argv.verbose)) {
+                await createDirectory(destination, playerData, argv.rawdata, argv.verbose);
+            }
             await pushDir(absPath, destination, playerData, argv.rawdata, argv.verbose);
             return;
         }
