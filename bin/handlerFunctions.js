@@ -671,7 +671,7 @@ async function pushFile(file, destination, playerData, isRawData, isVerbose) {
 
     const requestOptions = {
         method: 'PUT',
-        url: `http://${playerData[1]}/api/v1/files/${destination}`,
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + destination,
     };
 
     const formData = new FormData();
