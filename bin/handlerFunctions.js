@@ -574,12 +574,13 @@ async function downloadFileCommand(argv) {
         }
 
         requestOptions.url += '/' + fileName + '?contents&stream';
-        response = await requestFetch(requestOptions, playerData[0], playerData[2], null, mimeType, true);
+        const fstream = fs.createWriteStream(fileName);
+        requestFetch(requestOptions, playerData[0], playerData[2], null, mimeType, fstream);
 
-        fs.writeFile(fileName, response, (err) => {
-            if (err) throw err;
+        fstream.on('finish', () => {
+            fstream.close();
             console.log(`File ${fileName} has been saved!`);
-          });
+        });
     } catch (err) {
         errorHandler(err);
     }
@@ -1357,7 +1358,7 @@ async function pullData(argv) {
 }
 
 // request fetch function
-async function requestFetch(requestOptions, user, pass, filePath, succReturnContentType='application/json; charset=utf-8', returnBuffer=false) {
+async function requestFetch(requestOptions, user, pass, filePath, succReturnContentType='application/json; charset=utf-8', fstream=null) {
   const { url, ...options } = requestOptions;
 
   try {
@@ -1398,8 +1399,8 @@ async function requestFetch(requestOptions, user, pass, filePath, succReturnCont
 
     if (response.headers.get('content-type') === succReturnContentType) {
       if (response.ok) {
-        if (returnBuffer) {
-            return await response.buffer();
+        if (fstream) {
+            response.body.pipe(fstream);
         }
         else {
             return await response.json();
