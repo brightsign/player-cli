@@ -524,6 +524,68 @@ async function getFilesCommand(argv) {
     }
 }
 
+// download files func
+async function downloadFileCommand(argv) {
+    // get player data from argv
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
+    let playerPath = argv.path;
+
+    logIfOption('Downloading file from ' + playerPath, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
+
+    const fileName = currentPath.basename(playerPath);
+    const filePathWithoutFileName = currentPath.dirname(playerPath);
+
+    if (fileName === '') {
+        throw new Error('downloadfile command requires a filename.');
+    }
+
+    let requestOptions = {
+        method: 'GET',
+        url: 'http://' + playerData[1] + '/api/v1/files/' + playerData[3] + '/' + filePathWithoutFileName,
+    };
+
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
+
+    try {
+        let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        logIfOption('Response received! => ', argv.verbose);
+
+        let fileFound = false;
+        let mimeType = '';
+        let fileContents = response.data.result.files;
+        for (let i = 0; i < fileContents.length; i++) {
+            if (fileContents[i].name === fileName) {
+                mimeType = fileContents[i].mime;
+                fileFound = true;
+                break
+            }
+        }
+
+        if (!fileFound) {
+            throw new Error(`file ${fileName} was not found in ${filePathWithoutFileName}`);
+        }
+
+        requestOptions.url += '/' + fileName + '?contents&stream';
+        const fstream = fs.createWriteStream(fileName);
+        requestFetch(requestOptions, playerData[0], playerData[2], null, mimeType, fstream);
+
+        fstream.on('finish', () => {
+            fstream.close();
+            console.log(`File ${fileName} has been saved!`);
+        });
+    } catch (err) {
+        errorHandler(err);
+    }
+}
+
 // get time func
 async function getTime(argv) {
     // get player data from argv
@@ -1296,9 +1358,8 @@ async function pullData(argv) {
 }
 
 // request fetch function
-async function requestFetch(requestOptions, user, pass, filePath) {
+async function requestFetch(requestOptions, user, pass, filePath, succReturnContentType='application/json; charset=utf-8', fstream=null) {
   const { url, ...options } = requestOptions;
-  let succReturnContentType = 'application/json; charset=utf-8';
 
   try {
     let response = await fetch(url, options);
@@ -1338,7 +1399,12 @@ async function requestFetch(requestOptions, user, pass, filePath) {
 
     if (response.headers.get('content-type') === succReturnContentType) {
       if (response.ok) {
-        return await response.json();
+        if (fstream) {
+            response.body.pipe(fstream);
+        }
+        else {
+            return await response.json();
+        }
       } else {
         throw new ApiError(
           'Response Error',
@@ -1522,6 +1588,7 @@ module.exports = {
     setDWS,
     checkDWS,
     getFilesCommand,
+    downloadFileCommand,
     getTime,
     deleteFile,
     getLogs,

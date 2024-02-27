@@ -54,6 +54,9 @@ yargs.command('putfile <playerName> <FileDirectory> [location]', 'Put files on a
 // getFiles
 yargs.command('getfiles <playerName> [path]', 'Get files on player', (yargs) => {positionals.getFilePositional(yargs)}, (argv) => {handlers.getFilesCommand(argv)});
 
+// downloadFile
+yargs.command('downloadfile <playerName> [path]', 'Download file on player', (yargs) => {positionals.getFilePositional(yargs)}, (argv) => {handlers.downloadFileCommand(argv)});
+
 // getTime 
 yargs.command('gettime <playerName>', 'Get player time', (yargs) => {positionals.getTimePositional(yargs)}, (argv) => {handlers.getTime(argv)});
 
