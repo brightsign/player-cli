@@ -858,7 +858,7 @@ async function push(argv){
         // check if file or directory
         const isFile = await checkDir(path);
 
-        const destination = argv.location.length ? argv.location : 'sd';
+        const destination = argv.location.length ? argv.location : '';
 
         if (isFile) {
             await pushFile(absPath, destination, playerData, argv.rawdata, argv.verbose);
