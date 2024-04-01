@@ -249,6 +249,47 @@ function setRegPositional(yargs) {
     });
 }
 
+function setPowerSavePositional(yargs) {
+    yargs.positional('playerName', {
+        type: 'string',
+        default: 'player1',
+        describe: 'player name'
+    });
+    yargs.positional('connector', {
+        type: 'string',
+        default: 'hdmi',
+        describe: 'HDMI'
+    });
+    yargs.positional('device', {
+        type: 'string',
+        default: '1',
+        describe: 'HDMI port number'
+    });
+    yargs.positional('enabled', {
+        type: 'string',
+        default: 'true',
+        describe: 'Power save enabled/disabled'
+    });
+}
+
+function getPowerSavePositional(yargs) {
+    yargs.positional('playerName', {
+        type: 'string',
+        default: 'player1',
+        describe: 'player name'
+    });
+    yargs.positional('connector', {
+        type: 'string',
+        default: 'hdmi',
+        describe: 'HDMI'
+    });
+    yargs.positional('device', {
+        type: 'string',
+        default: '1',
+        describe: 'HDMI port number'
+    });
+}
+
 function facResetPositional(yargs) {
     yargs.positional('playerName', {
         type: 'string',
@@ -277,5 +318,7 @@ module.exports = {
     setDWSPositional,
     getRegPositional,
     setRegPositional,
+    setPowerSavePositional,
+    getPowerSavePositional,
     facResetPositional
 }

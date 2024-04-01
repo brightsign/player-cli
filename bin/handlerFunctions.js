@@ -214,6 +214,81 @@ async function editReg(argv) {
     }
 }
 
+// Set the Power Save value
+async function setPowerSave(argv) {
+    // get player data from argv
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
+
+    logIfOption('Editing Power Save mode for ' + argv.playerName  + ' ' + argv.connector + ' ' + argv.device + ' to ' + argv.enabled, argv.verbose);
+
+    // create body
+    let rawBody = JSON.stringify({ "enabled": argv.enabled });
+
+    let requestOptions = {
+        method: 'PUT',
+        url: 'http://' + playerData[1] + '/api/v1/video/' + argv.connector + '/output/' + argv.device + '/power-save',
+        headers: { 'Content-Type': 'application/json' },
+        body: rawBody
+    }
+
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
+
+    // send request
+    try {
+        let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        logIfOption('Response received! => ', argv.verbose);
+        if (!argv.rawdata) {
+            console.log('Power Save mode  changed: ' + response.data.result.success);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
+    } catch (err) {
+        errorHandler(err);
+    }
+}
+
+// Get the Power Save value
+async function getPowerSave(argv) {
+    // get player data from argv
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
+
+    logIfOption('Get Power Save mode for ' + argv.playerName  + ' ' + argv.connector + ' ' + argv.device + ' to ' + argv.enabled, argv.verbose);
+
+    let requestOptions = {
+        method: 'GET',
+        url: 'http://' + playerData[1] + '/api/v1/video/' + argv.connector + '/output/' + argv.device + '/power-save',
+    }
+
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
+
+    // send request
+    try {
+        let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        logIfOption('Response received! => ', argv.verbose);
+        if (!argv.rawdata) {
+            console.log('Power Save mode: ' + response.data.result.value);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
+    } catch (err) {
+        errorHandler(err);
+    }
+}
+
 // factory reset function
 async function factoryReset(argv) {
     // get player data from argv
@@ -1582,6 +1657,8 @@ module.exports = {
     editPlayer, 
     listPlayers, 
     editReg, 
+    setPowerSave,
+    getPowerSave,
     factoryReset,
     setTime,
     getReg,
