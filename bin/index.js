@@ -79,7 +79,7 @@ yargs.command('setreg <playerName> <section> <key> <value>', 'Edit registry valu
 yargs.command('setpowersave <playerName> <connector> <device> <value>', 'Set the video connector power save', (yargs) => {positionals.setPowerSavePositional(yargs)}, (argv) => {handlers.setPowerSave(argv)});
 
 // get power save
-yargs.command('getpowersave <playerName> <connector> <device>', 'Get the video connector power save', (yargs) => {positionals.getPowerSavePositional(yargs)}, (argv) => {handlers.getPowerSave(argv)});
+yargs.command('getpowersave <playerName> [connector] [device]', 'Get the video connector power save', (yargs) => {positionals.getPowerSavePositional(yargs)}, (argv) => {handlers.getPowerSave(argv)});
 
 // Factory reset
 yargs.command('facreset <playerName>', 'Factory reset player', (yargs) => {positionals.facResetPositional(yargs)}, (argv) => {handlers.factoryReset(argv)});

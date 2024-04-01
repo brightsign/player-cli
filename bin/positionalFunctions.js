@@ -258,12 +258,12 @@ function setPowerSavePositional(yargs) {
     yargs.positional('connector', {
         type: 'string',
         default: 'hdmi',
-        describe: 'HDMI'
+        describe: 'Chosen video output connector (hdmi)'
     });
     yargs.positional('device', {
         type: 'string',
-        default: '1',
-        describe: 'HDMI port number'
+        default: '0',
+        describe: 'HDMI port number (0-3)'
     });
     yargs.positional('enabled', {
         type: 'string',
@@ -281,12 +281,12 @@ function getPowerSavePositional(yargs) {
     yargs.positional('connector', {
         type: 'string',
         default: 'hdmi',
-        describe: 'HDMI'
+        describe: 'Chosen video output connector (hdmi)'
     });
     yargs.positional('device', {
         type: 'string',
-        default: '1',
-        describe: 'HDMI port number'
+        default: '0',
+        describe: 'HDMI port number (0-3)'
     });
 }
 

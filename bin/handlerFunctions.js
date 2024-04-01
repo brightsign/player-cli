@@ -245,7 +245,7 @@ async function setPowerSave(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
-            console.log('Power Save mode  changed: ' + response.data.result.success);
+            console.log('Power Save mode changed: ' + response.data.result);
         } else if (argv.rawdata) {
             console.log(response.data.result);
         }
@@ -280,7 +280,7 @@ async function getPowerSave(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
-            console.log('Power Save mode: ' + response.data.result.value);
+            console.log('Power Save mode: ' + response.data.result.enabled + ' is_connected: ' + response.data.result.is_connected);
         } else if (argv.rawdata) {
             console.log(response.data.result);
         }
