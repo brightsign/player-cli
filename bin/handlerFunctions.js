@@ -1481,15 +1481,19 @@ async function requestFetch(requestOptions, user, pass, filePath, succReturnCont
             return await response.json();
         }
       } else {
+        let jsonPayload = await response.json();
+        let message = jsonPayload?.data?.error?.message ? jsonPayload?.data?.error?.message : 'Response Error';
         throw new ApiError(
-          'Response Error',
+          message,
           response.status,
           response.headers.get('content-type')
         );
       }
     } else {
+      let jsonPayload = await response.json();
+      let message = jsonPayload?.data?.error?.message ? jsonPayload?.data?.error?.message : 'Unexpected content type in response';
       throw new ApiError(
-        'Unexpected content type in response',
+        message,
         response.status,
         response.headers.get('content-type')
       );
