@@ -255,6 +255,11 @@ function setPowerSavePositional(yargs) {
         default: 'player1',
         describe: 'player name'
     });
+    yargs.positional('enabled', {
+        type: 'string',
+        default: 'true',
+        describe: 'Power save enabled/disabled'
+    });
     yargs.positional('connector', {
         type: 'string',
         default: 'hdmi',
@@ -265,11 +270,7 @@ function setPowerSavePositional(yargs) {
         default: '0',
         describe: 'HDMI port number (0-3)'
     });
-    yargs.positional('enabled', {
-        type: 'string',
-        default: 'true',
-        describe: 'Power save enabled/disabled'
-    });
+
 }
 
 function getPowerSavePositional(yargs) {

@@ -280,7 +280,7 @@ async function getPowerSave(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
-            console.log('Power Save mode: ' + response.data.result.enabled + ' is_connected: ' + response.data.result.is_connected);
+            console.log('Power Save mode enabled: ' + response.data.result.enabled + ', output is_connected: ' + response.data.result.is_connected);
         } else if (argv.rawdata) {
             console.log(response.data.result);
         }
