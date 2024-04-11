@@ -257,18 +257,15 @@ function setPowerSavePositional(yargs) {
     });
     yargs.positional('enabled', {
         type: 'string',
-        default: 'true',
-        describe: 'Power save enabled/disabled'
+        describe: 'Power save enabled/disabled, true/false'
     });
     yargs.positional('connector', {
         type: 'string',
-        default: 'hdmi',
-        describe: 'Chosen video output connector (hdmi)'
+        describe: 'Chosen video output connector, hdmi'
     });
     yargs.positional('device', {
         type: 'string',
-        default: '0',
-        describe: 'HDMI port number (0-3)'
+        describe: 'HDMI port number, 0-3'
     });
 
 }
