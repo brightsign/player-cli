@@ -260,7 +260,6 @@ async function getPowerSave(argv) {
     let playerData;
     try {
         playerData = await pullData(argv);
-        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
     } catch (err) {
         errorHandler(err);
         return;
@@ -1491,7 +1490,7 @@ async function requestFetch(requestOptions, user, pass, filePath, succReturnCont
       }
     } else {
       let jsonPayload = await response.json();
-      let message = jsonPayload?.data?.error?.message ? jsonPayload?.data?.error?.message : 'Unexpected content type in response';
+      let message = jsonPayload?.data?.error?.message || 'Unexpected content type in response';
       throw new ApiError(
         message,
         response.status,
