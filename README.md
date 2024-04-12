@@ -76,13 +76,7 @@ npm -g install
 
 After installing, run `bsc --help` without arguments to see usage options: 
 ```
-Built-in command usage: bsc <command> [options]
-Raw usage: bsc raw -i <targetIp> -p [targetPassword] -m <reqMethod> -r
-<reqRoute> -a [rawResponse]
-
-Raw Request Examples:
-bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="info"
-bsc raw -i=192.168.128.148 -p=ABC01A000001 -m=GET -r="files/sd"
+Command usage: bsc <command> [options]
 
 Commands:
   bsc getdi <playerName>                    Get Device Info
@@ -102,6 +96,7 @@ Commands:
   bsc putfile <playerName> <FileDirectory>  Put files on a player
   [location]
   bsc getfiles <playerName> [path]          Get files on player
+  bsc downloadfile <playerName> [path]      Download file on player
   bsc gettime <playerName>                  Get player time
   bsc settime <playerName> <timezone>       Set player time
   <time> <date> [applyTimezone]
@@ -110,10 +105,16 @@ Commands:
   bsc getreg <playerName> [section] [key]   Get registry values
   bsc setreg <playerName> <section> <key>   Edit registry values
   <value>
+  bsc setpowersave <playerName>             Set the video connector power save
+  <connector> <device> <value>
+  bsc getpowersave <playerName>             Get the video connector power save
+  <connector> <device>
   bsc facreset <playerName>                 Factory reset player
 
 Options:
       --version  Show version number                                   [boolean]
+  -v, --verbose  Run with verbose logging             [boolean] [default: false]
+  -d, --rawdata  Output raw json response data        [boolean] [default: false]
   -h, --help     Show help                                             [boolean]
 ```
 

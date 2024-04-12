@@ -214,6 +214,80 @@ async function editReg(argv) {
     }
 }
 
+// Set the Power Save value
+async function setPowerSave(argv) {
+    // get player data from argv
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
+
+    logIfOption('Editing Power Save mode for ' + argv.playerName  + ' ' + argv.connector + ' ' + argv.device + ' to ' + argv.enabled, argv.verbose);
+
+    // create body
+    let rawBody = JSON.stringify({ "enabled": argv.enabled });
+
+    let requestOptions = {
+        method: 'PUT',
+        url: 'http://' + playerData[1] + '/api/v1/video/' + argv.connector + '/output/' + argv.device + '/power-save',
+        headers: { 'Content-Type': 'application/json' },
+        body: rawBody
+    }
+
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
+
+    // send request
+    try {
+        let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        logIfOption('Response received! => ', argv.verbose);
+        if (!argv.rawdata) {
+            console.log('Power Save mode changed: ' + response.data.result);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
+    } catch (err) {
+        errorHandler(err);
+    }
+}
+
+// Get the Power Save value
+async function getPowerSave(argv) {
+    // get player data from argv
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
+
+    logIfOption('Get Power Save mode for ' + argv.playerName  + ' ' + argv.connector + ' ' + argv.device + ' to ' + argv.enabled, argv.verbose);
+
+    let requestOptions = {
+        method: 'GET',
+        url: 'http://' + playerData[1] + '/api/v1/video/' + argv.connector + '/output/' + argv.device + '/power-save',
+    }
+
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
+
+    // send request
+    try {
+        let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        logIfOption('Response received! => ', argv.verbose);
+        if (!argv.rawdata) {
+            console.log('Power Save mode enabled: ' + response.data.result.enabled + ', output is_connected: ' + response.data.result.is_connected);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
+    } catch (err) {
+        errorHandler(err);
+    }
+}
+
 // factory reset function
 async function factoryReset(argv) {
     // get player data from argv
@@ -1406,15 +1480,19 @@ async function requestFetch(requestOptions, user, pass, filePath, succReturnCont
             return await response.json();
         }
       } else {
+        let jsonPayload = await response.json();
+        let message = jsonPayload?.data?.error?.message ? jsonPayload?.data?.error?.message : 'Response Error';
         throw new ApiError(
-          'Response Error',
+          message,
           response.status,
           response.headers.get('content-type')
         );
       }
     } else {
+      let jsonPayload = await response.json();
+      let message = jsonPayload?.data?.error?.message || 'Unexpected content type in response';
       throw new ApiError(
-        'Unexpected content type in response',
+        message,
         response.status,
         response.headers.get('content-type')
       );
@@ -1582,6 +1660,8 @@ module.exports = {
     editPlayer, 
     listPlayers, 
     editReg, 
+    setPowerSave,
+    getPowerSave,
     factoryReset,
     setTime,
     getReg,
