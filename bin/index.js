@@ -84,6 +84,9 @@ yargs.command('getpowersave <playerName> [connector] [device]', 'Get the video c
 // Factory reset
 yargs.command('facreset <playerName>', 'Factory reset player', (yargs) => {positionals.facResetPositional(yargs)}, (argv) => {handlers.factoryReset(argv)});
 
+// Send CEC command
+yargs.command('sendcec <playerName> <command>', 'Send CEC command', (yargs) => {positionals.sendCecPositional(yargs)}, (argv) => {handlers.sendCec(argv)});
+
 // define yargs options
 yargs.option('verbose', {
   alias: 'v',

@@ -296,6 +296,19 @@ function facResetPositional(yargs) {
     }); 
 }
 
+function sendCecPositional(yargs) {
+    yargs.positional('playerName', {
+        type: 'string',
+        default: 'player1',
+        describe: 'player name'
+    });
+    yargs.positional('command', {
+        type: 'string',
+        default: '',
+        describe: 'CEC command, direct passthrough'
+    });
+}
+
 module.exports = {
     getDiPositional,
     addPlayerPositional,
@@ -318,5 +331,6 @@ module.exports = {
     setRegPositional,
     setPowerSavePositional,
     getPowerSavePositional,
-    facResetPositional
+    facResetPositional,
+    sendCecPositional
 }

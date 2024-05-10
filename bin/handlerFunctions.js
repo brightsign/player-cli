@@ -1284,6 +1284,38 @@ async function screenshot(argv) {
     }
 }
 
+async function sendCec(argv) {
+    // get player data from argv
+    let playerData;
+    try {
+        playerData = await pullData(argv);
+        // playerData[0] = playerUser, [1] = playerIP, [2] = playerPW
+    } catch (err) {
+        errorHandler(err);
+        return;
+    }
+    logIfOption('Sending CEC command to ' + argv.playerName, argv.verbose);
+    logIfOption('      IP address: ' + playerData[1] + ', username: ' + playerData[0] + ', password: ' + playerData[2], argv.verbose);
+    let requestOptions = {
+        method: 'POST',
+        url: 'http://' + playerData[1] + '/api/v1/sendCecX',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({hexCommand: argv.command})
+    };
+    logIfOption('Sending ' + requestOptions.method + ' request to ' + requestOptions.url, argv.verbose);
+    try {
+        let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
+        logIfOption('Response received! => ', argv.verbose);
+        if (!argv.rawdata) {
+            console.log('CEC command sent: ' + response.data.result);
+        } else if (argv.rawdata) {
+            console.log(response.data.result);
+        }
+    } catch (err) {
+        errorHandler(err);
+    }
+}
+
 // General functions
 // confirm dangerous command
 function confirmDangerousCommand(prompt, callback) {
@@ -1683,5 +1715,6 @@ module.exports = {
     screenshot,
     generatePlayersJson,
     checkConfigExists,
-    helpChecker
+    helpChecker,
+    sendCec
 };
