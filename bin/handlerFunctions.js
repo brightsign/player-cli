@@ -1307,7 +1307,7 @@ async function sendCec(argv) {
         let response = await requestFetch(requestOptions, playerData[0], playerData[2]);
         logIfOption('Response received! => ', argv.verbose);
         if (!argv.rawdata) {
-            console.log('CEC command sent: ' + response.data.result);
+            console.log('CEC command sent: ' + response.data.result.success);
         } else if (argv.rawdata) {
             console.log(response.data.result);
         }
