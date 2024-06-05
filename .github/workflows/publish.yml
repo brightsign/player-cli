@@ -23,7 +23,6 @@ jobs:
           cache: 'yarn'
           registry-url: 'https://npm.pkg.github.com'
           always-auth: 'true'
-      - run: yarn --frozen-lockfile
-      - run: npm run publish-package
+      - run: npm ci && npm run publish-package
         env:
           GH_REF_VERSION: ${{ github.ref_name }}
