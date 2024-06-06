@@ -1,0 +1,24 @@
+name: Node.js Package Publishing
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-gpr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '14.17.6'
+          cache: 'npm'
+          always-auth: 'true'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci && npm run build
+      - run: npm version ${{ github.ref_name }} && npm run publish-package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
