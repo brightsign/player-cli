@@ -5,7 +5,7 @@
   "main": "./bin/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
-    "publish-package": "npm version $GH_REF_VERSION && npm publish"
+    "publish-package": "npm publish"
   },
   "bin": {
     "bsc": "./bin/index.js"

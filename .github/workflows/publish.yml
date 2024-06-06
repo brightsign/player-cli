@@ -1,4 +1,4 @@
-name: Node.js Packages Publishing
+name: Node.js Package Publishing
 
 on:
   release:
@@ -7,9 +7,6 @@ on:
 jobs:
   publish-gpr:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,8 +16,9 @@ jobs:
         with:
           node-version: '14.17.6'
           cache: 'npm'
-          registry-url: 'https://npm.pkg.github.com'
           always-auth: 'true'
-      - run: npm ci && npm run publish-package
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci && npm run build
+      - run: npm version ${{ github.ref_name }} && npm run publish-package
         env:
-          GH_REF_VERSION: ${{ github.ref_name }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
