@@ -1284,6 +1284,16 @@ async function screenshot(argv) {
     }
 }
 
+async function sendDisplayStandby(argv) {
+  argv.command = '4036';
+  return sendCec(argv)
+}
+
+async function sendDisplayOn(argv) {
+  argv.command = '400d';
+  return sendCec(argv)
+}
+
 async function sendCec(argv) {
     // get player data from argv
     let playerData;
@@ -1716,5 +1726,7 @@ module.exports = {
     generatePlayersJson,
     checkConfigExists,
     helpChecker,
-    sendCec
+    sendCec,
+    sendDisplayStandby,
+    sendDisplayOn
 };
