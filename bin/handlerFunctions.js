@@ -1726,11 +1726,7 @@ module.exports = {
     generatePlayersJson,
     checkConfigExists,
     helpChecker,
-<<<<<<< HEAD
-    sendCec
-=======
     sendCec,
     sendDisplayStandby,
     sendDisplayOn
->>>>>>> b9deb48b6797c5207fc592085e9672a8fe71f987
 };
