@@ -252,6 +252,19 @@ function sendDisplayOnPositional(yargs) {
     defaultPositional(yargs);
 }
 
+function sendCecPositional(yargs) {
+    yargs.positional('playerName', {
+        type: 'string',
+        default: 'player1',
+        describe: 'player name'
+    });
+    yargs.positional('command', {
+        type: 'string',
+        default: '',
+        describe: 'CEC command, direct passthrough'
+    });
+}
+
 module.exports = {
     getDiPositional,
     addPlayerPositional,

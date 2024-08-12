@@ -4,23 +4,30 @@
    <a href="https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs"><img src="https://raw.githubusercontent.com/brightsign/player-cli/main/readmeMedia/PoweredByPurple.jpg" alt="Powered by Purple!" width="400" height="194"></a>
 </p>
 
+> [!WARNING]
+> THIS CODEBASE IS DEPRECATED! `bsc` version 2.0.0 is now hosted [here](https://github.com/brightsign/brightsign-actions)
+
 The purpose of this package is to allow users to communicate with the [BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs) through a simple CLI tool, `bsc`. 
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-- [Use Cases](#use-cases)
-- [Installation](#installation)
+- [BrightSign CLI API Tool](#brightsign-cli-api-tool)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+  - [Use Cases](#use-cases)
+  - [Installation](#installation)
     - [NPM](#npm)
     - [Build from Source](#build-from-source)
     - [Check Installation](#check-installation)
-- [Configuring Players Locally](#configuring-players-locally)
-- [Usage](#usage)
-- [Troubleshooting](#troubleshooting)
-- [Features](#features)
-- [Raw Requests:](#raw-requests)
-- [Formatting Responses](#formatting-responses)
-    - [jq examples](#jq-examples)
+    - [Configuring Players Locally](#configuring-players-locally)
+      - [Example players.json](#example-playersjson)
+      - [Locally stored players.json](#locally-stored-playersjson)
+  - [Usage](#usage)
+  - [Troubleshooting](#troubleshooting)
+  - [Features](#features)
+  - [Raw Requests:](#raw-requests)
+    - [Formatting Responses](#formatting-responses)
+      - [jq examples](#jq-examples)
 
 ## Getting Started
 Install from NPM, 
