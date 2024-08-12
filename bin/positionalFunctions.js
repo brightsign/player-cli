@@ -1,4 +1,4 @@
-function getDiPositional(yargs) {
+function defaultPositional(yargs) {
     yargs.positional('playerName', {
         type: 'string',
         default: 'player1',
@@ -6,12 +6,13 @@ function getDiPositional(yargs) {
     });
 }
 
+function getDiPositional(yargs) {
+    defaultPositional(yargs);
+}
+
 function addPlayerPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player2',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('ipAddress', {
         type: 'string',
         describe: 'player IP address'
@@ -33,11 +34,7 @@ function addPlayerPositional(yargs) {
 }
 
 function rmPlayerPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player2',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
 }
 
 function editPlayerPositional(yargs) {
@@ -53,27 +50,16 @@ function editPlayerPositional(yargs) {
 }
 
 function rebootPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
 }
 
 function checkPWPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
 }
 
 function changePWPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('newPassword', {
         type: 'string',
         default: '',
@@ -82,19 +68,11 @@ function changePWPositional(yargs) {
 }
 
 function screenshotPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
 }
 
 function getLogsPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
 }
 
 function rawPositional(yargs) {
@@ -107,11 +85,8 @@ function rawPositional(yargs) {
 }
 
 function delFilePositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('file', {
         type: 'string',
         default: '',
@@ -120,11 +95,8 @@ function delFilePositional(yargs) {
 }
 
 function putFilePositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('FileDirectory', {
         type: 'string',
         default: '',
@@ -138,11 +110,8 @@ function putFilePositional(yargs) {
 }
 
 function getFilePositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('path', {
         type: 'string',
         default: '',
@@ -151,19 +120,12 @@ function getFilePositional(yargs) {
 }
 
 function getTimePositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });  
+    defaultPositional(yargs);
 }
 
 function setTimePositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('timezone', {
         type: 'string',
         default: 'America/New_York',
@@ -187,20 +149,12 @@ function setTimePositional(yargs) {
 }
 
 function checkDWSPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
-
+    defaultPositional(yargs);
 }
 
 function setDWSPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'Player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('onOff', {
         type: 'string',
         default: 'on',
@@ -209,11 +163,8 @@ function setDWSPositional(yargs) {
 }
 
 function getRegPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('section', {
         type: 'string',
         default: '',
@@ -227,11 +178,8 @@ function getRegPositional(yargs) {
 }
 
 function setRegPositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('section', {
         type: 'string',
         default: '',
@@ -250,11 +198,8 @@ function setRegPositional(yargs) {
 }
 
 function setPowerSavePositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('enabled', {
         type: 'string',
         describe: 'Power save enabled/disabled, true/false'
@@ -271,11 +216,8 @@ function setPowerSavePositional(yargs) {
 }
 
 function getPowerSavePositional(yargs) {
-    yargs.positional('playerName', {
-        type: 'string',
-        default: 'player1',
-        describe: 'player name'
-    });
+    defaultPositional(yargs);
+
     yargs.positional('connector', {
         type: 'string',
         default: 'hdmi',
@@ -289,11 +231,25 @@ function getPowerSavePositional(yargs) {
 }
 
 function facResetPositional(yargs) {
-    yargs.positional('playerName', {
+    defaultPositional(yargs);
+}
+
+function sendCecPositional(yargs) {
+    defaultPositional(yargs);
+
+    yargs.positional('command', {
         type: 'string',
-        default: 'player1',
-        describe: 'player name'
-    }); 
+        default: '',
+        describe: 'CEC command, direct passthrough'
+    });
+}
+
+function sendDisplayStandbyPositional(yargs) {
+    defaultPositional(yargs);
+}
+
+function sendDisplayOnPositional(yargs) {
+    defaultPositional(yargs);
 }
 
 function sendCecPositional(yargs) {
@@ -332,5 +288,7 @@ module.exports = {
     setPowerSavePositional,
     getPowerSavePositional,
     facResetPositional,
-    sendCecPositional
+    sendCecPositional,
+    sendDisplayOnPositional,
+    sendDisplayStandbyPositional
 }
