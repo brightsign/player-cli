@@ -5,7 +5,7 @@
 </p>
 
 > [!WARNING]
-> THIS CODEBASE IS DEPRECATED! `bsc` version 2.0.0 is now hosted [here](https://github.com/brightsign/brightsign-actions)
+> THIS CODEBASE IS DEPRECATED! `bsc` version 2.0.0 is now hosted [here](https://www.npmjs.com/package/@brightsign/bsc)
 
 The purpose of this package is to allow users to communicate with the [BrightSign's Local DWS (Diagnostic Web Server) REST HTTP APIs](https://brightsign.atlassian.net/wiki/spaces/DOC/pages/1172734089/Local+DWS+APIs) through a simple CLI tool, `bsc`. 
 
